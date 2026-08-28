@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import InviteClientForm from "@/components/InviteClientForm";
+import UpgradeButton from "@/components/UpgradeButton";
 
 export default async function CoachDashboard() {
   const supabase = await createClient();
@@ -30,9 +31,18 @@ export default async function CoachDashboard() {
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">{coach?.business_name || coach?.name || "Your dashboard"}</h1>
-          <Link href="/coach/methodology" className="text-sm underline text-neutral-600">
-            Edit methodology
-          </Link>
+          <div className="flex items-center gap-4">
+            {coach && (
+              <UpgradeButton
+                coachId={coach.id}
+                customerEmail={auth.user.email}
+                subscriptionStatus={coach.subscription_status}
+              />
+            )}
+            <Link href="/coach/methodology" className="text-sm underline text-neutral-600">
+              Edit methodology
+            </Link>
+          </div>
         </div>
 
         {!coach?.training_philosophy && (

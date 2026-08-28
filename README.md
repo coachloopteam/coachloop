@@ -36,12 +36,44 @@ no shared history.
 4. **Vercel** — new project at vercel.com (free Hobby tier) under that email, importing the GitHub
    repo above. Add the env vars from `.env.local.example` in Project Settings → Environment
    Variables before the first real deploy.
-5. **Paddle** — no new merchant account needed. In your existing Paddle dashboard, create a new
-   **Product** for CoachLoop with its own price ID(s) ($49–99/mo), separate from any other
-   product in the catalog. Put the client-side token and price ID into env vars, and point a
-   webhook at `https://<your-domain>/api/webhooks/paddle` for subscription events.
-   `app/api/webhooks/paddle/route.ts` has a `TODO` to add signature verification once the webhook
-   secret exists — don't skip that before accepting real payments.
+5. **Paddle sandbox setup** — no new merchant account needed; this uses your existing Paddle
+   account's built-in **Sandbox** (switch to it via the environment toggle at the top of the
+   Paddle dashboard). All the code below is already wired up and waiting on real values —
+   there's nothing left to build, just values to create and drop into env vars.
+
+   1. **Product + Price** — Catalog > Products > New product, name it (e.g. "CoachLoop Pro"),
+      then add a recurring Price ($49–99/mo). Copy the Price ID (`pri_...`) into
+      `NEXT_PUBLIC_PADDLE_PRICE_ID`.
+   2. **Client-side token** — Developer tools > Authentication > Client-side tokens > New
+      token. Copy it into `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN` (sandbox tokens are safe to expose to
+      the browser — that's what they're for; never put an API key here).
+   3. **Webhook / notification destination** — Developer tools > Notifications > New
+      destination. URL: `https://<your-vercel-domain>/api/webhooks/paddle`. Type: Webhook. Events:
+      at minimum `subscription.created`, `subscription.updated`, `subscription.activated`,
+      `subscription.trialing`, `subscription.past_due`, `subscription.paused`,
+      `subscription.canceled`. After saving, open the destination and copy its **signing secret**
+      (`ntfset_...` secret, shown once — regenerating it invalidates the old one) into
+      `PADDLE_WEBHOOK_SECRET`.
+   4. Leave `PADDLE_API_KEY` blank for now — the webhook handler verifies signatures using
+      `PADDLE_WEBHOOK_SECRET` alone; the API key slot exists for future server-side Paddle calls
+      this app doesn't make yet.
+   5. Redeploy (or restart `next dev`) after setting the env vars so Next.js picks up the new
+      `NEXT_PUBLIC_*` values — they're inlined at build time, not read at request time.
+
+   How the pieces fit together: `components/UpgradeButton.tsx` opens Paddle's checkout overlay
+   and tags the transaction with `customData: { coach_id }`, so `app/api/webhooks/paddle/route.ts`
+   can find the right `coaches` row the moment Paddle confirms payment — before that coach has
+   ever been assigned a `paddle_customer_id`. The webhook verifies every request's
+   `Paddle-Signature` header against `PADDLE_WEBHOOK_SECRET` via `@paddle/paddle-node-sdk` and
+   rejects anything that doesn't match, then syncs `coaches.subscription_status` directly from
+   Paddle's own subscription status (trialing/active/past_due/paused→canceled/canceled) — so it
+   stays correct through renewals, dunning, and cancellations without needing special-case logic
+   per event type.
+
+   This is sandbox-only: test cards and fake billing details, nothing real is charged. Going live
+   later means Paddle's own "Verify your account" and "Test and go live" steps, plus creating the
+   equivalent Product/Price/token/webhook in Paddle's **live** environment (sandbox and live are
+   entirely separate catalogs — nothing here carries over automatically).
 
 ## Local development
 
