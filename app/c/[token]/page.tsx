@@ -1,8 +1,37 @@
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import LogForm from "@/components/LogForm";
-import Card from "@/components/ui/Card";
-import Badge from "@/components/ui/Badge";
+import LogButtons from "@/components/LogButtons";
+
+type LogEntry = {
+  id: string;
+  type: string;
+  content: string;
+  logged_at: string;
+  feedback: string | null;
+};
+
+function dayLabel(iso: string): string {
+  const date = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  if (date.toDateString() === today.toDateString()) return "Today";
+  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return date.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+}
+
+function groupByDay(entries: LogEntry[]): { label: string; entries: LogEntry[] }[] {
+  const groups: { label: string; entries: LogEntry[] }[] = [];
+  for (const entry of entries) {
+    const label = dayLabel(entry.logged_at);
+    const existing = groups.find((g) => g.label === label);
+    if (existing) existing.entries.push(entry);
+    else groups.push({ label, entries: [entry] });
+  }
+  return groups;
+}
+
+const TYPE_ICON: Record<string, string> = { meal: "📸", workout: "💪" };
 
 export default async function ClientPortal({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -17,6 +46,8 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
   if (!client) notFound();
 
   const coach = Array.isArray(client.coaches) ? client.coaches[0] : client.coaches;
+  const coachName = coach?.business_name || coach?.name || "your coach";
+  const firstName = client.name.split(" ")[0];
 
   const { data: history } = await supabase
     .from("logs")
@@ -25,42 +56,77 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
     .order("logged_at", { ascending: false })
     .limit(10);
 
+  const entries: LogEntry[] = (history ?? []).map((h) => {
+    const fb = Array.isArray(h.ai_feedback) ? h.ai_feedback[0] : h.ai_feedback;
+    return { id: h.id, type: h.type, content: h.content, logged_at: h.logged_at, feedback: fb?.feedback ?? null };
+  });
+  const groups = groupByDay(entries);
+
   return (
-    <div className="min-h-screen bg-background px-4 py-10">
+    <div className="min-h-screen bg-background px-4 py-8">
       <div className="mx-auto max-w-md space-y-6">
-        <div className="animate-fade-in-up">
-          <h1 className="text-xl font-semibold tracking-tight text-stone-900">Hey {client.name} 👋</h1>
-          <p className="text-sm text-stone-500">
-            Coached by {coach?.business_name || coach?.name || "your coach"}
-          </p>
+        {/* A friendly opener, styled like the first message in a chat rather
+            than a page title — sets the "conversation, not a form" tone. */}
+        <div className="animate-fade-in-up flex justify-start">
+          <div className="max-w-[85%] rounded-3xl rounded-bl-lg border border-stone-100 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <p className="text-base leading-relaxed text-stone-800">
+              Hey {firstName}! 👋 Ready for today? Coached by <span className="font-semibold">{coachName}</span>.
+            </p>
+          </div>
         </div>
 
         <div className="animate-fade-in-up">
-          <LogForm token={token} />
+          <LogButtons token={token} />
         </div>
 
-        <div className="space-y-3">
-          {history?.map((h, i) => {
-            const fb = Array.isArray(h.ai_feedback) ? h.ai_feedback[0] : h.ai_feedback;
-            return (
-              <Card
-                key={h.id}
-                className="animate-fade-in-up space-y-1.5 p-4 text-sm"
-                style={{ animationDelay: `${Math.min(i, 6) * 40}ms` }}
-              >
-                <div className="flex items-center gap-2">
-                  <Badge className="capitalize">{h.type}</Badge>
-                  <p className="text-xs text-stone-400">{new Date(h.logged_at).toLocaleString()}</p>
+        <div className="space-y-6">
+          {groups.map((group) => (
+            <div key={group.label} className="space-y-3">
+              <p className="text-center text-xs font-semibold uppercase tracking-wide text-stone-400">
+                {group.label}
+              </p>
+              {group.entries.map((entry) => (
+                <div key={entry.id} className="space-y-2">
+                  {/* The client's own log — an outgoing message. */}
+                  <div className="flex justify-end">
+                    <div className="max-w-[85%] rounded-3xl rounded-br-lg bg-stone-900 px-5 py-3.5 text-white">
+                      <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-white/60">
+                        <span aria-hidden>{TYPE_ICON[entry.type] ?? "📝"}</span>
+                        {entry.type} · {new Date(entry.logged_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                      </p>
+                      <p className="mt-1 text-base leading-relaxed">{entry.content}</p>
+                    </div>
+                  </div>
+
+                  {/* Coach's feedback — an elegant reply bubble. Not literal
+                      audio (no TTS in this app) — the label and treatment
+                      just evoke that same premium, personal feel. */}
+                  {entry.feedback && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[85%] rounded-3xl rounded-bl-lg border border-stone-100 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs text-white"
+                            style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
+                            aria-hidden
+                          >
+                            🎙️
+                          </span>
+                          <p className="text-xs font-semibold text-stone-500">
+                            Coach&apos;s Feedback{" "}
+                            <span className="font-normal text-stone-400">
+                              · Grounded in {coachName}&apos;s methodology
+                            </span>
+                          </p>
+                        </div>
+                        <p className="mt-2 text-base leading-relaxed text-stone-800">{entry.feedback}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <p className="text-stone-800">{h.content}</p>
-                {fb?.feedback && (
-                  <p className="rounded-xl border border-stone-100 bg-stone-50 p-2.5 italic text-stone-600">
-                    {fb.feedback}
-                  </p>
-                )}
-              </Card>
-            );
-          })}
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </div>
