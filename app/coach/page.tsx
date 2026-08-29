@@ -32,13 +32,7 @@ export default async function CoachDashboard() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">{coach?.business_name || coach?.name || "Your dashboard"}</h1>
           <div className="flex items-center gap-4">
-            {coach && (
-              <UpgradeButton
-                coachId={coach.id}
-                customerEmail={auth.user.email}
-                subscriptionStatus={coach.subscription_status}
-              />
-            )}
+            {coach && <UpgradeButton subscriptionStatus={coach.subscription_status} />}
             <Link href="/coach/methodology" className="text-sm underline text-neutral-600">
               Edit methodology
             </Link>
