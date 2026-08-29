@@ -52,3 +52,7 @@ export const pricingTiers: PricingTierInfo[] = [
     },
   },
 ];
+
+export function findTierByPriceId(priceId: string): PricingTierInfo | undefined {
+  return pricingTiers.find((tier) => tier.priceId.month === priceId || tier.priceId.year === priceId);
+}

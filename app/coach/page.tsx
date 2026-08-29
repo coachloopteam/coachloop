@@ -41,6 +41,9 @@ export default async function CoachDashboard() {
           </div>
           <div className="flex items-center gap-3">
             {coach && <UpgradeButton subscriptionStatus={coach.subscription_status} />}
+            <Link href="/coach/account" className={buttonClasses("ghost")}>
+              Account & billing
+            </Link>
             <Link href="/coach/methodology" className={buttonClasses("ghost")}>
               Edit methodology
             </Link>

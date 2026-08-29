@@ -21,6 +21,29 @@ create table if not exists coaches (
   created_at timestamptz not null default now()
 );
 
+-- Auto-creates the coaches row the moment someone signs up via Supabase Auth
+-- (see app/coach/login/page.tsx) — runs with elevated privileges so it isn't
+-- blocked by the "coach updates own row" RLS policy below, which wouldn't
+-- apply yet anyway since there's no coaches row to match auth.uid() against
+-- until this runs. Applied directly against the live project; captured here
+-- for the record.
+create or replace function public.handle_new_coach()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.coaches (auth_user_id, name)
+  values (new.id, coalesce(new.raw_user_meta_data->>'name', ''));
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function handle_new_coach();
+
 -- One row per client. Clients do NOT get a Supabase Auth account for the MVP —
 -- they're identified by an unguessable invite_token in their portal URL
 -- (/c/<invite_token>), so onboarding is "open the link", not "create a password".
@@ -98,5 +121,82 @@ create policy "coach reads own clients feedback" on ai_feedback
       select c.id from clients c
       join coaches co on co.id = c.coach_id
       where co.auth_user_id = auth.uid()
+    )
+  );
+
+-- Mirrors Paddle customer/subscription/transaction state from verified
+-- webhook events (see app/api/webhooks/paddle/route.ts and
+-- lib/paddle/process-webhook.ts). Written only by the webhook handler via
+-- the service-role client — coaches read their own rows through RLS below.
+
+create table if not exists customers (
+  customer_id text primary key,
+  -- Nullable: a subscription event can arrive before the customer.created
+  -- event that would otherwise set this, so the webhook handler upserts a
+  -- stub row first. Backfilled from custom_data.coach_id on subscription
+  -- events; email is backfilled separately from customer.created/updated.
+  coach_id uuid references coaches(id) on delete set null,
+  email text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists customers_coach_id_idx on customers(coach_id);
+create index if not exists customers_email_idx on customers(email);
+
+create table if not exists subscriptions (
+  subscription_id text primary key,
+  customer_id text not null references customers(customer_id) on delete cascade,
+  status text not null,
+  price_id text not null,
+  product_id text not null,
+  -- Non-null while a cancel/pause/resume is pending but hasn't taken effect
+  -- yet. `status` stays 'active' until then — see lib/paddle/access.ts.
+  scheduled_change_action text,
+  scheduled_change_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists subscriptions_customer_id_idx on subscriptions(customer_id);
+create index if not exists subscriptions_status_idx on subscriptions(status);
+
+-- Transaction totals arrive from Paddle as decimal strings in the currency's
+-- lowest unit (e.g. "4900" = $49.00) — stored as text, not parsed here.
+create table if not exists transactions (
+  transaction_id text primary key,
+  customer_id text references customers(customer_id) on delete set null,
+  subscription_id text references subscriptions(subscription_id) on delete set null,
+  status text not null,
+  currency_code text,
+  total_amount text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists transactions_customer_id_idx on transactions(customer_id);
+
+alter table customers enable row level security;
+alter table subscriptions enable row level security;
+alter table transactions enable row level security;
+
+create policy "coach reads own customer row" on customers
+  for select using (
+    coach_id in (select id from coaches where auth_user_id = auth.uid())
+  );
+
+create policy "coach reads own subscriptions" on subscriptions
+  for select using (
+    customer_id in (
+      select customer_id from customers
+      where coach_id in (select id from coaches where auth_user_id = auth.uid())
+    )
+  );
+
+create policy "coach reads own transactions" on transactions
+  for select using (
+    customer_id in (
+      select customer_id from customers
+      where coach_id in (select id from coaches where auth_user_id = auth.uid())
     )
   );
