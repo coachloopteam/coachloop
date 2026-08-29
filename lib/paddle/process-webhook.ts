@@ -134,9 +134,9 @@ const LEGACY_STATUS_MAP: Record<string, string> = {
   canceled: "canceled",
 };
 
-// Back-compat: app/coach/page.tsx and components/UpgradeButton.tsx still
-// read coaches.subscription_status directly for the dashboard's trial/
-// subscribed badge, predating the customers/subscriptions tables above.
+// Back-compat: app/coach/page.tsx still reads coaches.subscription_status
+// directly for the dashboard's plan card, predating the
+// customers/subscriptions tables above.
 // Keeping this in sync here (same event, same handler pass) means there's
 // exactly one write path per event and no risk of the two mirrors drifting
 // apart from independently-triggered syncs.

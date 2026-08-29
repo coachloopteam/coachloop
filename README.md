@@ -60,8 +60,9 @@ no shared history.
    5. Redeploy (or restart `next dev`) after setting the env vars so Next.js picks up the new
       `NEXT_PUBLIC_*` values — they're inlined at build time, not read at request time.
 
-   How the pieces fit together: `components/UpgradeButton.tsx` opens Paddle's checkout overlay
-   and tags the transaction with `customData: { coach_id }`, so `app/api/webhooks/paddle/route.ts`
+   How the pieces fit together: `components/PricingCards.tsx` (on `/coach/pricing`) opens Paddle's
+   checkout overlay and tags the transaction with `customData: { coach_id }`, so
+   `app/api/webhooks/paddle/route.ts`
    can find the right `coaches` row the moment Paddle confirms payment — before that coach has
    ever been assigned a `paddle_customer_id`. The webhook verifies every request's
    `Paddle-Signature` header against `PADDLE_WEBHOOK_SECRET` via `@paddle/paddle-node-sdk` and

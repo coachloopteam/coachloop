@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
 export default function InviteClientForm() {
+  const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [link, setLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const linkInputRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,32 +34,101 @@ export default function InviteClientForm() {
     }
   }
 
+  async function copyLink() {
+    if (!link) return;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard access can fail for reasons a non-technical user has no way
+      // to diagnose (permission prompts, older browsers, non-HTTPS edge
+      // cases) — silently doing nothing would look broken. Select the link
+      // text instead so tapping "Copy Link" always does *something* visible
+      // and they can still copy it by hand.
+      linkInputRef.current?.select();
+    }
+  }
+
+  function inviteAnother() {
+    setLink(null);
+    setCopied(false);
+  }
+
+  // Collapsed: one big, obvious card — matches the other big action cards on
+  // the dashboard. No hidden menus, nothing to learn.
+  if (!open && !link) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="flex w-full items-center gap-4 rounded-3xl border-2 border-dashed border-stone-200 bg-white p-6 text-left transition-all duration-200 ease-out hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] active:scale-[0.99]"
+      >
+        <span
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl text-white"
+          style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
+          aria-hidden
+        >
+          ➕
+        </span>
+        <span>
+          <span className="block text-lg font-semibold text-stone-900">Invite a New Client</span>
+          <span className="block text-sm text-stone-500">Get them started in seconds</span>
+        </span>
+      </button>
+    );
+  }
+
   return (
-    <Card className="p-5">
-      <h2 className="text-sm font-semibold text-stone-900">Invite a client</h2>
-      <form onSubmit={handleSubmit} className="mt-3 flex flex-wrap gap-2.5">
-        <Input
-          className="min-w-[140px] flex-1"
-          placeholder="Client name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <Input
-          className="min-w-[140px] flex-1"
-          placeholder="Email (optional)"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Button type="submit" disabled={loading}>
-          {loading ? "Creating…" : "Create invite link"}
-        </Button>
-      </form>
-      {link && (
-        <p className="animate-fade-in mt-3 break-all rounded-xl border border-stone-100 bg-stone-50 px-3 py-2.5 text-sm">
-          Send this to your client: <span className="font-mono text-stone-700">{link}</span>
-        </p>
+    <Card className="p-6">
+      <h2 className="text-lg font-semibold text-stone-900">➕ Invite a New Client</h2>
+
+      {!link ? (
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+          <Input
+            className="py-3.5 text-base"
+            placeholder="Their name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <Input
+            className="py-3.5 text-base"
+            placeholder="Their email (optional)"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <div className="flex gap-2.5">
+            <Button type="submit" disabled={loading} className="flex-1 py-3.5 text-base">
+              {loading ? "Sending…" : "Send Invite"}
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)} className="py-3.5 text-base">
+              Cancel
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <div className="animate-fade-in mt-4 space-y-3">
+          <p className="text-base font-medium text-emerald-700">✅ All set! Share this link with them:</p>
+          {/* A readonly input, not a <p> — tapping/clicking it selects the
+              text everywhere with zero JS, which is the reliable fallback
+              if the Clipboard API below ever fails. */}
+          <input
+            ref={linkInputRef}
+            readOnly
+            value={link}
+            onClick={(e) => e.currentTarget.select()}
+            className="w-full rounded-xl border border-stone-100 bg-stone-50 px-3.5 py-3 font-mono text-sm text-stone-700 outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+          />
+          <div className="flex gap-2.5">
+            <Button type="button" onClick={copyLink} className="flex-1 py-3.5 text-base">
+              {copied ? "Copied!" : "Copy Link"}
+            </Button>
+            <Button type="button" variant="secondary" onClick={inviteAnother} className="py-3.5 text-base">
+              Invite Another
+            </Button>
+          </div>
+        </div>
       )}
     </Card>
   );
