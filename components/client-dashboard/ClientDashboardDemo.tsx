@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import MobileHeader from "./MobileHeader";
+import BottomTabBar, { type Tab } from "./BottomTabBar";
 import HabitRing from "./HabitRing";
-import DailyTimeline from "./DailyTimeline";
+import BentoTaskGrid from "./BentoTaskGrid";
+import ProgressTab from "./ProgressTab";
+import MessagesTab from "./MessagesTab";
 import ConfettiBurst from "./ConfettiBurst";
 import {
   MOCK_HABITS,
@@ -14,11 +18,15 @@ import {
   type TimelineItem,
 } from "./mock-data";
 
+const CLIENT_NAME = "Jamie";
+const COACH_NAME = "Alex Rivera";
+
 function toggled(status: HabitStatus): HabitStatus {
   return status === "done" ? "pending" : "done";
 }
 
 export default function ClientDashboardDemo() {
+  const [tab, setTab] = useState<Tab>("today");
   const [habits, setHabits] = useState<Habit[]>(MOCK_HABITS);
   const [timeline, setTimeline] = useState<TimelineItem[]>(MOCK_TIMELINE);
   const [streak, setStreak] = useState(MOCK_STREAK_DAYS);
@@ -53,41 +61,50 @@ export default function ClientDashboardDemo() {
     setTimeline((prev) => prev.map((t) => (t.id === id ? { ...t, status: toggled(t.status) } : t)));
   }
 
-  const doneCount = timeline.filter((t) => t.status === "done").length;
+  const doneToday = timeline.filter((t) => t.status === "done").length;
+  const tasksLeft = timeline.length - doneToday;
 
   return (
-    <div className="relative min-h-screen bg-background px-4 py-10">
-      <div className="mx-auto max-w-md space-y-6">
-        <div className="animate-fade-in-up flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight text-stone-900">Hey Jamie 👋</h1>
-            <p className="text-sm text-stone-500">Coached by Alex Rivera</p>
-          </div>
-          <div className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
-            <span aria-hidden>🔥</span>
-            {streak}-day streak
-          </div>
-        </div>
+    <div className="mx-auto flex min-h-screen max-w-md flex-col bg-background sm:border-x sm:border-stone-100">
+      <MobileHeader name={CLIENT_NAME} tasksLeft={tasksLeft} />
 
-        <div className="animate-fade-in-up relative rounded-3xl border border-stone-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-18px_rgba(0,0,0,0.12)]">
-          {burstKey > 0 && <ConfettiBurst key={burstKey} />}
-          <HabitRing habits={habits} onToggle={toggleHabit} />
-        </div>
+      <main className="flex-1 space-y-5 px-4 pb-28 pt-5">
+        {tab === "today" && (
+          <div className="animate-fade-in space-y-5">
+            <div className="flex justify-end">
+              <div className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
+                <span aria-hidden>🔥</span>
+                {streak}-day streak
+              </div>
+            </div>
 
-        <div className="animate-fade-in-up">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-stone-900">Today&apos;s plan</h2>
-            <span className="text-xs font-medium text-stone-400">
-              {doneCount}/{timeline.length} complete
-            </span>
+            <div className="relative rounded-3xl border border-stone-100 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-18px_rgba(0,0,0,0.12)]">
+              {burstKey > 0 && <ConfettiBurst key={burstKey} />}
+              <HabitRing habits={habits} onToggle={toggleHabit} />
+            </div>
+
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-stone-900">Today&apos;s plan</h2>
+                <span className="text-xs font-medium text-stone-400">
+                  {doneToday}/{timeline.length} complete
+                </span>
+              </div>
+              <BentoTaskGrid items={timeline} onToggle={toggleTimelineItem} />
+            </div>
           </div>
-          <DailyTimeline items={timeline} onToggle={toggleTimelineItem} />
-        </div>
-      </div>
+        )}
+
+        {tab === "progress" && <ProgressTab streak={streak} doneToday={doneToday} totalToday={timeline.length} />}
+
+        {tab === "messages" && <MessagesTab coachName={COACH_NAME} />}
+      </main>
+
+      <BottomTabBar active={tab} onChange={setTab} />
 
       <div
         className={cn(
-          "pointer-events-none fixed inset-x-0 bottom-6 flex justify-center px-4 transition-opacity duration-300",
+          "pointer-events-none fixed inset-x-0 bottom-20 z-30 flex justify-center px-4 transition-opacity duration-300",
           toast ? "opacity-100" : "opacity-0"
         )}
       >

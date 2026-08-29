@@ -82,3 +82,19 @@ export const MOCK_TIMELINE: TimelineItem[] = [
 ];
 
 export const MOCK_STREAK_DAYS = 3;
+
+export interface DayProgress {
+  label: string;
+  percent: number;
+}
+
+// Last 7 days, oldest first — today intentionally partial to match MOCK_HABITS/MOCK_TIMELINE.
+export const MOCK_WEEK_PROGRESS: DayProgress[] = [
+  { label: "Wed", percent: 100 },
+  { label: "Thu", percent: 80 },
+  { label: "Fri", percent: 60 },
+  { label: "Sat", percent: 100 },
+  { label: "Sun", percent: 40 },
+  { label: "Mon", percent: 100 },
+  { label: "Tue", percent: 40 },
+];

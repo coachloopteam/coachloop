@@ -43,6 +43,16 @@ body {
   border-radius: 4px;
 }
 
+/* Safe-area insets for edge-to-edge mobile layouts (notches, home
+   indicator) — used by the sticky header and bottom tab bar in the
+   client-dashboard concept. */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* Subtle dotted-grid texture for hero / marketing surfaces. */
 .bg-grid {
   background-image: radial-gradient(circle at 1px 1px, rgba(28, 28, 30, 0.06) 1px, transparent 0);
