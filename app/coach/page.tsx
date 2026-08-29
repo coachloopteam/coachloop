@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import InviteClientForm from "@/components/InviteClientForm";
 import UpgradeButton from "@/components/UpgradeButton";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import { buttonClasses } from "@/components/ui/Button";
 
 export default async function CoachDashboard() {
   const supabase = await createClient();
@@ -27,55 +30,92 @@ export default async function CoachDashboard() {
   const THREE_DAYS = 1000 * 60 * 60 * 24 * 3;
 
   return (
-    <div className="min-h-screen bg-neutral-50 px-4 py-10">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">{coach?.business_name || coach?.name || "Your dashboard"}</h1>
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-background px-4 py-10 sm:py-14">
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div className="animate-fade-in-up flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-stone-400">Dashboard</p>
+            <h1 className="mt-0.5 text-2xl font-semibold tracking-tight text-stone-900">
+              {coach?.business_name || coach?.name || "Your dashboard"}
+            </h1>
+          </div>
+          <div className="flex items-center gap-3">
             {coach && <UpgradeButton subscriptionStatus={coach.subscription_status} />}
-            <Link href="/coach/methodology" className="text-sm underline text-neutral-600">
+            <Link href="/coach/methodology" className={buttonClasses("ghost")}>
               Edit methodology
             </Link>
           </div>
         </div>
 
         {!coach?.training_philosophy && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-4 text-sm">
-            You haven&apos;t set your methodology yet — the AI feedback clients get is only as good
-            as this.{" "}
-            <Link href="/coach/methodology" className="underline font-medium">
-              Set it up now
-            </Link>
-            .
-          </div>
+          <Card className="animate-fade-in-up flex items-start gap-3 border-amber-200/70 bg-amber-50 p-4 text-sm text-amber-900">
+            <span className="mt-0.5 text-base" aria-hidden>
+              ⚠️
+            </span>
+            <p>
+              You haven&apos;t set your methodology yet — the AI feedback clients get is only as good
+              as this.{" "}
+              <Link href="/coach/methodology" className="font-medium underline underline-offset-2">
+                Set it up now
+              </Link>
+              .
+            </p>
+          </Card>
         )}
 
-        <InviteClientForm />
-
-        <div className="bg-white border border-neutral-200 rounded-xl divide-y">
-          <h2 className="font-medium p-5 pb-3">Your clients</h2>
-          {!clients?.length && <p className="px-5 pb-5 text-sm text-neutral-500">No clients invited yet.</p>}
-          {clients?.map((c) => {
-            const logs = (c.logs as { logged_at: string }[]) || [];
-            const lastLog = logs.sort((a, b) => (a.logged_at < b.logged_at ? 1 : -1))[0];
-            const stale = c.status === "active" && (!lastLog || now - new Date(lastLog.logged_at).getTime() > THREE_DAYS);
-            return (
-              <div key={c.id} className="px-5 py-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{c.name}</p>
-                  <p className="text-sm text-neutral-500">
-                    {c.status === "invited" ? "Invited — hasn't logged in yet" : lastLog ? `Last log ${new Date(lastLog.logged_at).toLocaleDateString()}` : "No logs yet"}
-                  </p>
-                </div>
-                {stale && (
-                  <span className="text-xs bg-red-100 text-red-700 rounded-full px-3 py-1 font-medium">
-                    No activity in 3+ days
-                  </span>
-                )}
-              </div>
-            );
-          })}
+        <div className="animate-fade-in-up">
+          <InviteClientForm />
         </div>
+
+        <Card className="animate-fade-in-up overflow-hidden">
+          <h2 className="border-b border-stone-100 px-5 py-4 text-sm font-semibold text-stone-900">
+            Your clients
+          </h2>
+
+          {!clients?.length && (
+            <p className="px-5 py-8 text-center text-sm text-stone-400">No clients invited yet.</p>
+          )}
+
+          <div className="divide-y divide-stone-100">
+            {clients?.map((c) => {
+              const logs = (c.logs as { logged_at: string }[]) || [];
+              const lastLog = logs.sort((a, b) => (a.logged_at < b.logged_at ? 1 : -1))[0];
+              const stale =
+                c.status === "active" && (!lastLog || now - new Date(lastLog.logged_at).getTime() > THREE_DAYS);
+              return (
+                <div
+                  key={c.id}
+                  className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-stone-50/80"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
+                      style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
+                      aria-hidden
+                    >
+                      {c.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-stone-900">{c.name}</p>
+                      <p className="truncate text-sm text-stone-500">
+                        {c.status === "invited"
+                          ? "Invited — hasn't logged in yet"
+                          : lastLog
+                            ? `Last log ${new Date(lastLog.logged_at).toLocaleDateString()}`
+                            : "No logs yet"}
+                      </p>
+                    </div>
+                  </div>
+                  {stale && (
+                    <Badge variant="danger" className="shrink-0">
+                      No activity in 3+ days
+                    </Badge>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Card>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import PricingCards from "@/components/PricingCards";
+import { buttonClasses } from "@/components/ui/Button";
 
 export default async function PricingPage() {
   const supabase = await createClient();
@@ -20,12 +21,15 @@ export default async function PricingPage() {
   const country = h.get("x-vercel-ip-country") ?? "OTHERS";
 
   return (
-    <div className="min-h-screen bg-neutral-50 px-4 py-10">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Plans</h1>
-          <Link href="/coach" className="text-sm underline text-neutral-600">
-            Back to dashboard
+    <div className="min-h-screen bg-background px-4 py-10 sm:py-14">
+      <div className="mx-auto max-w-4xl space-y-8">
+        <div className="animate-fade-in-up flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-stone-400">Billing</p>
+            <h1 className="mt-0.5 text-2xl font-semibold tracking-tight text-stone-900">Plans</h1>
+          </div>
+          <Link href="/coach" className={buttonClasses("ghost")}>
+            ← Back to dashboard
           </Link>
         </div>
         <PricingCards coachId={coach.id} customerEmail={auth.user.email} country={country} />

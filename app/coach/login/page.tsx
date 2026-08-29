@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Card from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 
 export default function CoachLoginPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signup");
@@ -61,56 +65,95 @@ export default function CoachLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4 bg-white p-8 rounded-xl shadow-sm border border-neutral-200">
-        <h1 className="text-xl font-semibold">{mode === "signup" ? "Create your coach account" : "Sign in"}</h1>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
+      <div className="bg-grid absolute inset-x-0 top-0 h-[420px]" aria-hidden />
 
-        {mode === "signup" && (
-          <input
-            className="w-full border border-neutral-300 rounded-lg px-3 py-2"
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        )}
-        <input
-          className="w-full border border-neutral-300 rounded-lg px-3 py-2"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          className="w-full border border-neutral-300 rounded-lg px-3 py-2"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={6}
-        />
-
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {info && <p className="text-sm text-green-700">{info}</p>}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-neutral-900 text-white rounded-lg py-2 font-medium disabled:opacity-50"
+      <div className="animate-fade-in-up relative w-full max-w-sm">
+        <Link
+          href="/"
+          className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 transition-colors hover:text-stone-900"
         >
-          {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
-        </button>
+          ← CoachLoop
+        </Link>
 
-        <button
-          type="button"
-          className="text-sm text-neutral-500 underline"
-          onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
-        >
-          {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
-        </button>
-      </form>
+        <Card className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <h1 className="text-xl font-semibold text-stone-900">
+                {mode === "signup" ? "Create your coach account" : "Sign in"}
+              </h1>
+              <p className="mt-1 text-sm text-stone-500">
+                {mode === "signup" ? "Set up your coaching workspace in seconds." : "Welcome back."}
+              </p>
+            </div>
+
+            {mode === "signup" && (
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-stone-700" htmlFor="name">
+                  Name
+                </label>
+                <Input
+                  id="name"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-stone-700" htmlFor="email">
+                Email
+              </label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-stone-700" htmlFor="password">
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+
+            {error && (
+              <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+            )}
+            {info && (
+              <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                {info}
+              </p>
+            )}
+
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
+            </Button>
+
+            <button
+              type="button"
+              className="w-full text-center text-sm text-stone-500 underline-offset-4 transition-colors hover:text-stone-900 hover:underline"
+              onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+            >
+              {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
+            </button>
+          </form>
+        </Card>
+      </div>
     </div>
   );
 }

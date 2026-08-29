@@ -1,26 +1,78 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf9f7;
+  --surface: #ffffff;
+  --foreground: #1c1c1e;
+  --accent: #ff5a5f;
+  --accent-hover: #e14a50;
+  --accent-soft: #fff1f1;
+  --ring: #ff5a5f;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Subtle dotted-grid texture for hero / marketing surfaces. */
+.bg-grid {
+  background-image: radial-gradient(circle at 1px 1px, rgba(28, 28, 30, 0.06) 1px, transparent 0);
+  background-size: 24px 24px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 100%);
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease both;
 }

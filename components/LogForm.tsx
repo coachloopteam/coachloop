@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/cn";
+import Card from "@/components/ui/Card";
+import { Textarea } from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 
 export default function LogForm({ token }: { token: string }) {
   const [type, setType] = useState<"meal" | "workout">("meal");
@@ -32,39 +36,41 @@ export default function LogForm({ token }: { token: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 bg-white border border-neutral-200 rounded-xl p-5">
-      <div className="flex gap-2">
-        {(["meal", "workout"] as const).map((t) => (
-          <button
-            type="button"
-            key={t}
-            onClick={() => setType(t)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium border ${
-              type === t ? "bg-neutral-900 text-white border-neutral-900" : "border-neutral-300 text-neutral-600"
-            }`}
-          >
-            {t === "meal" ? "Log a meal" : "Log a workout"}
-          </button>
-        ))}
-      </div>
-      <textarea
-        className="w-full border border-neutral-300 rounded-lg px-3 py-2"
-        rows={3}
-        placeholder={type === "meal" ? "e.g. Grilled chicken, rice, and a banana" : "e.g. 5x5 squats at 80kg, felt strong"}
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-      />
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-neutral-900 text-white rounded-lg py-2 font-medium disabled:opacity-50"
-      >
-        {loading ? "Sending…" : "Submit"}
-      </button>
+    <Card className="p-5">
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="flex gap-2">
+          {(["meal", "workout"] as const).map((t) => (
+            <button
+              type="button"
+              key={t}
+              onClick={() => setType(t)}
+              className={cn(
+                "rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-200",
+                type === t
+                  ? "border-stone-900 bg-stone-900 text-white"
+                  : "border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50"
+              )}
+            >
+              {t === "meal" ? "Log a meal" : "Log a workout"}
+            </button>
+          ))}
+        </div>
+        <Textarea
+          rows={3}
+          placeholder={type === "meal" ? "e.g. Grilled chicken, rice, and a banana" : "e.g. 5x5 squats at 80kg, felt strong"}
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+        />
+        <Button type="submit" disabled={loading} className="w-full">
+          {loading ? "Sending…" : "Submit"}
+        </Button>
 
-      {feedback && (
-        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3 text-sm">{feedback}</div>
-      )}
-    </form>
+        {feedback && (
+          <div className="animate-fade-in rounded-xl border border-stone-100 bg-stone-50 p-3 text-sm text-stone-700">
+            {feedback}
+          </div>
+        )}
+      </form>
+    </Card>
   );
 }
