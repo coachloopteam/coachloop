@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "CoachLoop",
-  description: "AI-assisted client portal for fitness coaches",
+  description:
+    "CoachLoop connects fitness coaches with their clients — clients log meals and workouts and get AI feedback in their coach's own voice.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
