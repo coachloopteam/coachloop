@@ -40,15 +40,15 @@ export default function Hero() {
         <div className="animate-fade-in-up mt-10 flex flex-col items-center gap-4" style={{ animationDelay: "200ms" }}>
           <Link
             href="/coach/login"
-            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-stone-900 px-7 py-3.5 text-base font-semibold text-white transition-all duration-500 ease-out hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-[0_18px_40px_-12px_rgba(255,90,95,0.55)]"
+            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-white/10 bg-[#161614] px-7 py-3.5 text-base font-semibold text-white shadow-[0_12px_32px_-14px_rgba(0,0,0,0.55)] transition-all duration-500 ease-in-out hover:-translate-y-0.5 hover:scale-[1.02] hover:border-white/0 hover:shadow-[0_20px_44px_-12px_rgba(255,90,95,0.55)]"
           >
             <span
-              className="absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+              className="absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
               style={{ background: "linear-gradient(120deg, var(--accent), #ff8a65)" }}
               aria-hidden
             />
             Coach sign in / sign up
-            <ArrowRight className="h-4 w-4 transition-transform duration-500 ease-out group-hover:translate-x-1" strokeWidth={1.75} aria-hidden />
+            <ArrowRight className="h-4 w-4 transition-transform duration-500 ease-in-out group-hover:translate-x-1" strokeWidth={1.5} aria-hidden />
           </Link>
           <a
             href="#features"
@@ -70,20 +70,22 @@ export default function Hero() {
               style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
               aria-hidden
             >
-              <Sparkles className="h-4 w-4" strokeWidth={1.75} />
+              <Sparkles className="h-4 w-4" strokeWidth={1.5} />
             </span>
             <p className="text-xs font-medium uppercase tracking-wide text-white/40">Live client preview</p>
           </div>
 
           <div className="mt-7 space-y-3">
-            <div className="flex justify-end">
+            <RevealOnScroll delayMs={150} className="flex justify-end">
               <div className="max-w-[78%] rounded-3xl rounded-br-lg bg-white px-5 py-3.5 text-stone-900 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.35)]">
                 <p className="text-[11px] font-medium uppercase tracking-wide text-stone-400">Client · today</p>
                 <p className="mt-1 text-sm leading-relaxed">Skipped my run this morning, felt drained.</p>
               </div>
-            </div>
+            </RevealOnScroll>
 
-            <RevealOnScroll delayMs={450} className="flex justify-start">
+            {/* A deliberate human-like pause before the reply, so it reads as
+                a considered response rather than an instant auto-reply. */}
+            <RevealOnScroll delayMs={950} className="flex justify-start">
               <div className="max-w-[85%] rounded-3xl rounded-bl-lg border border-white/10 bg-white/[0.06] px-5 py-4 backdrop-blur-md">
                 <p className="text-xs font-semibold text-white/50">Feedback, in your coach&apos;s voice</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-white/90">

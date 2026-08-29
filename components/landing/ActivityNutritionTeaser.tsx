@@ -9,6 +9,14 @@ const DISCIPLINE_ICON: Record<Discipline["id"], LucideIcon> = {
   yoga: Flower2,
 };
 
+// Muted, "trendy cafe" tag tones rather than saturated status colors — pale
+// gold for energy-dense, sage for nutrient-dense, warm gray for dietary tags.
+const TAG_STYLES = {
+  highCalorie: "bg-[#f6ecd9] text-[#8a6a2f]",
+  nutrientRich: "bg-[#e7ede2] text-[#4f6146]",
+  neutral: "bg-[#efece7] text-[#5c564c]",
+};
+
 // Not a shipped feature yet — see components/concept/mock-data.ts. Kept
 // clearly labeled "Coming soon" since this is the public landing page, not
 // an internal design preview: nothing here should read as a capability the
@@ -36,17 +44,20 @@ export default function ActivityNutritionTeaser() {
             return (
               <div
                 key={d.id}
-                className="group rounded-3xl border border-stone-200/80 bg-white p-6 text-center transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_28px_56px_-26px_rgba(0,0,0,0.18)]"
+                className="group overflow-hidden rounded-3xl border border-stone-200/80 bg-white text-center transition-all duration-500 ease-in-out hover:-translate-y-1 hover:shadow-[0_28px_56px_-26px_rgba(0,0,0,0.18)]"
               >
-                <span
-                  className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl text-white transition-transform duration-500 ease-out group-hover:scale-110"
-                  style={{ background: d.gradient }}
-                  aria-hidden
-                >
-                  <Icon className="h-5 w-5" strokeWidth={1.5} />
-                </span>
-                <p className="mt-4 text-base font-semibold text-stone-900">{d.name}</p>
-                <p className="mt-1 text-sm leading-relaxed text-stone-500">{d.tagline}</p>
+                <div className="h-1" style={{ background: d.gradient }} aria-hidden />
+                <div className="p-6">
+                  <span
+                    className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl text-white ring-4 ring-stone-50 transition-transform duration-500 ease-in-out group-hover:scale-110"
+                    style={{ background: d.gradient }}
+                    aria-hidden
+                  >
+                    <Icon className="h-6 w-6" strokeWidth={1.5} />
+                  </span>
+                  <p className="mt-5 text-base font-semibold text-stone-900">{d.name}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-stone-500">{d.tagline}</p>
+                </div>
               </div>
             );
           })}
@@ -54,27 +65,27 @@ export default function ActivityNutritionTeaser() {
 
         <RevealOnScroll delayMs={220} className="mt-14">
           <h3 className="px-1 text-lg font-semibold text-stone-900">Healthy &amp; premium recipes</h3>
-          <div className="mt-4 flex snap-x snap-mandatory gap-3.5 overflow-x-auto pb-2 pl-1 pr-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mt-4 flex snap-x snap-mandatory gap-3.5 overflow-x-auto scroll-smooth pb-2 pl-1 pr-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {RECIPES.slice(0, 5).map((r) => {
               const isHighCal = r.category === "high-calorie";
               return (
                 <div
                   key={r.id}
-                  className="w-[188px] shrink-0 snap-start overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_28px_56px_-26px_rgba(0,0,0,0.18)]"
+                  className="w-[192px] shrink-0 snap-start overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-500 ease-in-out hover:-translate-y-1 hover:shadow-[0_28px_56px_-26px_rgba(0,0,0,0.18)]"
                 >
                   <div
                     className="flex h-24 items-center justify-center"
                     style={{
                       background: isHighCal
-                        ? "linear-gradient(135deg, #fde4c8, #fbb768)"
-                        : "linear-gradient(135deg, #dcecd9, #9fc79a)",
+                        ? "linear-gradient(135deg, #f6ecd9, #e9cf9f)"
+                        : "linear-gradient(135deg, #e7ede2, #c3d4b9)",
                     }}
                     aria-hidden
                   >
                     {isHighCal ? (
-                      <Flame className="h-7 w-7 text-amber-700/70" strokeWidth={1.25} />
+                      <Flame className="h-7 w-7 text-[#8a6a2f]/70" strokeWidth={1.25} />
                     ) : (
-                      <Leaf className="h-7 w-7 text-emerald-800/60" strokeWidth={1.25} />
+                      <Leaf className="h-7 w-7 text-[#4f6146]/70" strokeWidth={1.25} />
                     )}
                   </div>
                   <div className="space-y-2.5 p-4">
@@ -82,19 +93,19 @@ export default function ActivityNutritionTeaser() {
                     <div className="flex flex-wrap gap-1.5">
                       <span
                         className={cn(
-                          "rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors duration-300",
-                          isHighCal ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"
+                          "rounded-full px-2 py-0.5 text-[10px] font-semibold transition-colors duration-300",
+                          isHighCal ? TAG_STYLES.highCalorie : TAG_STYLES.nutrientRich
                         )}
                       >
                         {isHighCal ? "High-Calorie Boost" : "Nutrient-Dense"}
                       </span>
                       {r.glutenFree && (
-                        <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600">
+                        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", TAG_STYLES.neutral)}>
                           Gluten-Free
                         </span>
                       )}
                       {r.lactoseFree && (
-                        <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600">
+                        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", TAG_STYLES.neutral)}>
                           Lactose-Free
                         </span>
                       )}

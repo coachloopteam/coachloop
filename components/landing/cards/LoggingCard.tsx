@@ -26,7 +26,7 @@ export default function LoggingCard() {
                 )}
                 aria-hidden
               >
-                <r.icon className="h-3.5 w-3.5" strokeWidth={1.75} />
+                <r.icon className="h-3.5 w-3.5" strokeWidth={1.5} />
               </span>
               <span className="text-[11px] font-medium text-stone-700">{r.label}</span>
               {r.done && <Check className="ml-auto h-3.5 w-3.5 shrink-0 text-emerald-500" strokeWidth={2.25} aria-hidden />}
