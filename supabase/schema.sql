@@ -14,6 +14,11 @@ create table if not exists coaches (
   nutrition_rules text default '',
   tone text default 'supportive, direct, no fluff',
   banned_topics text default '',
+  -- How many days of silence before a client shows up under "Needs Your
+  -- Attention" on the coach dashboard (app/coach/page.tsx). Configurable via
+  -- the methodology screen — this is the one "toggle" from that screen with
+  -- a real, already-built effect to attach to; see components/MethodologyForm.tsx.
+  stale_after_days integer not null default 3 check (stale_after_days > 0),
   paddle_customer_id text,
   paddle_subscription_id text,
   subscription_status text not null default 'trialing'

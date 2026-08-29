@@ -35,7 +35,7 @@ export default async function CoachDashboard() {
     .order("created_at", { ascending: false });
 
   const now = Date.now();
-  const THREE_DAYS = 1000 * 60 * 60 * 24 * 3;
+  const staleAfterMs = (coach?.stale_after_days ?? 3) * 1000 * 60 * 60 * 24;
   const todayKey = new Date().toDateString();
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -44,7 +44,7 @@ export default async function CoachDashboard() {
   const clientRows = (clients ?? []).map((c) => {
     const logs = (c.logs as { type: string; logged_at: string }[]) || [];
     const lastLog = logs.sort((a, b) => (a.logged_at < b.logged_at ? 1 : -1))[0];
-    const stale = c.status === "active" && (!lastLog || now - new Date(lastLog.logged_at).getTime() > THREE_DAYS);
+    const stale = c.status === "active" && (!lastLog || now - new Date(lastLog.logged_at).getTime() > staleAfterMs);
     return { ...c, lastLog, stale };
   });
 

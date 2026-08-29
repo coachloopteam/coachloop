@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
-  const { training_philosophy, nutrition_rules, tone, banned_topics } = await req.json();
+  const { training_philosophy, nutrition_rules, tone, banned_topics, stale_after_days } = await req.json();
 
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
@@ -12,7 +12,13 @@ export async function POST(req: NextRequest) {
 
   const { error } = await supabase
     .from("coaches")
-    .update({ training_philosophy, nutrition_rules, tone, banned_topics })
+    .update({
+      training_philosophy,
+      nutrition_rules,
+      tone,
+      banned_topics,
+      stale_after_days: Number(stale_after_days) || 3,
+    })
     .eq("auth_user_id", auth.user.id);
 
   if (error) {
