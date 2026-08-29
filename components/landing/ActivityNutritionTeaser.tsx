@@ -1,4 +1,5 @@
-import { Dumbbell, Flame, Flower2, Leaf, PersonStanding, type LucideIcon } from "lucide-react";
+import Image from "next/image";
+import { Dumbbell, Flower2, PersonStanding, type LucideIcon } from "lucide-react";
 import { DISCIPLINES, RECIPES, type Discipline } from "@/components/concept/mock-data";
 import RevealOnScroll from "./RevealOnScroll";
 import { cn } from "@/lib/cn";
@@ -7,6 +8,46 @@ const DISCIPLINE_ICON: Record<Discipline["id"], LucideIcon> = {
   fitness: Dumbbell,
   pilates: PersonStanding,
   yoga: Flower2,
+};
+
+// Real, verified Unsplash photos (via WebSearch + WebFetch of the actual
+// photo page — never guessed) under the free Unsplash License.
+const DISCIPLINE_IMAGES: Record<Discipline["id"], { src: string; alt: string }> = {
+  fitness: {
+    src: "https://images.unsplash.com/photo-1590487988256-9ed24133863e?q=80&w=800&auto=format&fit=crop",
+    alt: "Grayscale gym equipment in moody light",
+  },
+  pilates: {
+    src: "https://images.unsplash.com/photo-1754257319747-df51c384c0fa?q=80&w=800&auto=format&fit=crop",
+    alt: "Pilates reformer workout in a bright studio",
+  },
+  yoga: {
+    src: "https://images.unsplash.com/photo-1687783615494-b4a1f1af8b58?q=80&w=800&auto=format&fit=crop",
+    alt: "Bright minimalist yoga studio with mats",
+  },
+};
+
+const RECIPE_IMAGES: Record<string, { src: string; alt: string }> = {
+  r1: {
+    src: "https://images.unsplash.com/photo-1702648982253-8b851013e81f?q=80&w=800&auto=format&fit=crop",
+    alt: "Oatmeal bowl topped with fruit and nuts",
+  },
+  r2: {
+    src: "https://images.unsplash.com/photo-1695882257148-b35580f4c4b6?q=80&w=800&auto=format&fit=crop",
+    alt: "Salmon and mushrooms cooking on a grill",
+  },
+  r3: {
+    src: "https://images.unsplash.com/photo-1567932783552-e305bbf70b63?q=80&w=800&auto=format&fit=crop",
+    alt: "Grilled meat platter on a dark surface",
+  },
+  r4: {
+    src: "https://images.unsplash.com/photo-1636044992466-ba190da5d40b?q=80&w=800&auto=format&fit=crop",
+    alt: "Layered yogurt parfait with fresh fruit",
+  },
+  r5: {
+    src: "https://images.unsplash.com/photo-1781334266250-a7e72fdf539f?q=80&w=800&auto=format&fit=crop",
+    alt: "Plates of roasted chicken, rice, and salad",
+  },
 };
 
 // Muted, "trendy cafe" tag tones rather than saturated status colors — pale
@@ -41,22 +82,30 @@ export default function ActivityNutritionTeaser() {
         <RevealOnScroll delayMs={120} className="mt-12 grid gap-4 sm:grid-cols-3">
           {DISCIPLINES.map((d) => {
             const Icon = DISCIPLINE_ICON[d.id];
+            const img = DISCIPLINE_IMAGES[d.id];
             return (
               <div
                 key={d.id}
-                className="group overflow-hidden rounded-3xl border border-stone-200/80 bg-white text-center transition-all duration-500 ease-in-out hover:-translate-y-1 hover:shadow-[0_28px_56px_-26px_rgba(0,0,0,0.18)]"
+                className="group relative aspect-[3/4] overflow-hidden rounded-3xl border border-stone-200/80 transition-all duration-500 ease-in-out hover:-translate-y-1 hover:shadow-[0_28px_56px_-26px_rgba(0,0,0,0.3)]"
               >
-                <div className="h-1" style={{ background: d.gradient }} aria-hidden />
-                <div className="p-6">
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  sizes="(min-width: 640px) 33vw, 100vw"
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" aria-hidden />
+                <div className="absolute inset-x-0 bottom-0 p-5 text-left">
                   <span
-                    className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl text-white ring-4 ring-stone-50 transition-transform duration-500 ease-in-out group-hover:scale-110"
+                    className="flex h-11 w-11 items-center justify-center rounded-2xl text-white ring-1 ring-white/25 backdrop-blur-md"
                     style={{ background: d.gradient }}
                     aria-hidden
                   >
-                    <Icon className="h-6 w-6" strokeWidth={1.5} />
+                    <Icon className="h-5 w-5" strokeWidth={1.5} />
                   </span>
-                  <p className="mt-5 text-base font-semibold text-stone-900">{d.name}</p>
-                  <p className="mt-1 text-sm leading-relaxed text-stone-500">{d.tagline}</p>
+                  <p className="mt-3 text-lg font-semibold text-white">{d.name}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-white/70">{d.tagline}</p>
                 </div>
               </div>
             );
@@ -68,25 +117,20 @@ export default function ActivityNutritionTeaser() {
           <div className="mt-4 flex snap-x snap-mandatory gap-3.5 overflow-x-auto scroll-smooth pb-2 pl-1 pr-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {RECIPES.slice(0, 5).map((r) => {
               const isHighCal = r.category === "high-calorie";
+              const img = RECIPE_IMAGES[r.id];
               return (
                 <div
                   key={r.id}
-                  className="w-[192px] shrink-0 snap-start overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-500 ease-in-out hover:-translate-y-1 hover:shadow-[0_28px_56px_-26px_rgba(0,0,0,0.18)]"
+                  className="group w-[200px] shrink-0 snap-start overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-500 ease-in-out hover:-translate-y-1 hover:shadow-[0_28px_56px_-26px_rgba(0,0,0,0.18)]"
                 >
-                  <div
-                    className="flex h-24 items-center justify-center"
-                    style={{
-                      background: isHighCal
-                        ? "linear-gradient(135deg, #f6ecd9, #e9cf9f)"
-                        : "linear-gradient(135deg, #e7ede2, #c3d4b9)",
-                    }}
-                    aria-hidden
-                  >
-                    {isHighCal ? (
-                      <Flame className="h-7 w-7 text-[#8a6a2f]/70" strokeWidth={1.25} />
-                    ) : (
-                      <Leaf className="h-7 w-7 text-[#4f6146]/70" strokeWidth={1.25} />
-                    )}
+                  <div className="relative h-36 w-full overflow-hidden">
+                    <Image
+                      src={img.src}
+                      alt={img.alt}
+                      fill
+                      sizes="200px"
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    />
                   </div>
                   <div className="space-y-2.5 p-4">
                     <p className="text-sm font-semibold leading-snug text-stone-900">{r.name}</p>
