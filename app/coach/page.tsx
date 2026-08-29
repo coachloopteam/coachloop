@@ -2,7 +2,18 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import InviteClientForm from "@/components/InviteClientForm";
+import CheckInButton from "@/components/CheckInButton";
 import Card from "@/components/ui/Card";
+
+function timeAgo(iso: string): string {
+  const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (minutes < 2) return "just now";
+  if (minutes < 60) return `${minutes} minutes ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
 
 export default async function CoachDashboard() {
   const supabase = await createClient();
@@ -19,41 +30,37 @@ export default async function CoachDashboard() {
 
   const { data: clients } = await supabase
     .from("clients")
-    .select("id, name, status, created_at, logs(logged_at)")
+    .select("id, name, email, invite_token, status, created_at, logs(type, logged_at)")
     .eq("coach_id", coach?.id)
     .order("created_at", { ascending: false });
 
   const now = Date.now();
   const THREE_DAYS = 1000 * 60 * 60 * 24 * 3;
-
-  // Everything below is real, existing data — not a fabricated "message" or
-  // "plan" feature. Just plain-language framing of what already exists:
-  // an invited client who hasn't started, or an active one gone quiet.
-  type Alert = { key: string; icon: string; text: string };
-  const alerts: Alert[] = [];
-
-  if (!coach?.training_philosophy) {
-    alerts.push({
-      key: "methodology",
-      icon: "📝",
-      text: "You haven't set up your coaching style yet — clients won't get great feedback until you do.",
-    });
-  }
+  const todayKey = new Date().toDateString();
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
   const clientRows = (clients ?? []).map((c) => {
-    const logs = (c.logs as { logged_at: string }[]) || [];
+    const logs = (c.logs as { type: string; logged_at: string }[]) || [];
     const lastLog = logs.sort((a, b) => (a.logged_at < b.logged_at ? 1 : -1))[0];
     const stale = c.status === "active" && (!lastLog || now - new Date(lastLog.logged_at).getTime() > THREE_DAYS);
     return { ...c, lastLog, stale };
   });
 
-  for (const c of clientRows) {
-    if (c.status === "invited") {
-      alerts.push({ key: `${c.id}-invited`, icon: "👋", text: `${c.name} hasn't started yet` });
-    } else if (c.stale) {
-      alerts.push({ key: `${c.id}-stale`, icon: "😴", text: `${c.name} has gone quiet — say hi!` });
-    }
-  }
+  // Global metrics — plain-English, and all real. "Monthly Earnings via
+  // Paddle" from the brief doesn't map to anything this app actually does:
+  // Paddle here only charges the COACH for their own subscription — there's
+  // no feature for a coach to collect payment from their clients through
+  // this app, so there's no "earnings" figure to show honestly. Swapped in
+  // "New Clients This Month" instead, which is real.
+  const totalClients = clientRows.length;
+  const activeToday = clientRows.filter(
+    (c) => c.lastLog && new Date(c.lastLog.logged_at).toDateString() === todayKey
+  ).length;
+  const newThisMonth = clientRows.filter((c) => new Date(c.created_at) >= startOfMonth).length;
+
+  const needsAttention = clientRows.filter((c) => c.status === "invited" || c.stale);
 
   const firstName = coach?.name?.split(" ")[0] || "there";
   const planMessage =
@@ -77,41 +84,72 @@ export default async function CoachDashboard() {
           </p>
         </div>
 
+        <div className="animate-fade-in-up grid grid-cols-3 gap-3">
+          <div className="rounded-3xl border border-stone-100 bg-white p-5 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <p className="text-3xl font-bold text-stone-900">{totalClients}</p>
+            <p className="mt-1 text-xs font-medium leading-tight text-stone-500">Total Clients Onboard</p>
+          </div>
+          <div className="rounded-3xl border border-stone-100 bg-white p-5 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <p className="text-3xl font-bold text-stone-900">{activeToday}</p>
+            <p className="mt-1 text-xs font-medium leading-tight text-stone-500">Clients Active Today</p>
+          </div>
+          <div className="rounded-3xl border border-stone-100 bg-white p-5 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <p className="text-3xl font-bold text-stone-900">{newThisMonth}</p>
+            <p className="mt-1 text-xs font-medium leading-tight text-stone-500">New Clients This Month</p>
+          </div>
+        </div>
+
+        {!coach?.training_philosophy && (
+          <Link
+            href="/coach/methodology"
+            className="animate-fade-in-up flex items-center justify-between gap-3 rounded-2xl border border-amber-200/70 bg-amber-50 p-4 transition-colors hover:bg-amber-100/70"
+          >
+            <span className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-xl" aria-hidden>
+                📝
+              </span>
+              <span className="text-base font-medium text-amber-900">
+                You haven&apos;t set up your coaching style yet — clients won&apos;t get great feedback until you do.
+              </span>
+            </span>
+            <span className="shrink-0 text-sm font-semibold text-amber-700">Set it up →</span>
+          </Link>
+        )}
+
         <div className="animate-fade-in-up">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-400">Needs your attention</h2>
-          {alerts.length === 0 ? (
+          <h2 className="mb-3 text-xl font-bold tracking-tight text-stone-900">Who Needs Your Attention Today?</h2>
+          {needsAttention.length === 0 ? (
             <Card className="flex items-center gap-3 border-emerald-100 bg-emerald-50/60 p-5">
               <span className="text-2xl" aria-hidden>
                 ✅
               </span>
-              <p className="text-base font-medium text-emerald-800">You&apos;re all caught up — nothing needs you right now.</p>
+              <p className="text-base font-medium text-emerald-800">Nobody&apos;s gone quiet — you&apos;re not missing anyone.</p>
             </Card>
           ) : (
-            <div className="space-y-2.5">
-              {alerts.map((a) =>
-                a.key === "methodology" ? (
-                  <Link
-                    key={a.key}
-                    href="/coach/methodology"
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-amber-200/70 bg-amber-50 p-4 transition-colors hover:bg-amber-100/70"
-                  >
-                    <span className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-xl" aria-hidden>
-                        {a.icon}
-                      </span>
-                      <span className="text-base font-medium text-amber-900">{a.text}</span>
-                    </span>
-                    <span className="shrink-0 text-sm font-semibold text-amber-700">Set it up →</span>
-                  </Link>
-                ) : (
-                  <Card key={a.key} className="flex items-center gap-3 p-4">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-stone-50 text-xl" aria-hidden>
-                      {a.icon}
-                    </span>
-                    <p className="text-base font-medium text-stone-900">{a.text}</p>
-                  </Card>
-                )
-              )}
+            <div className="space-y-3">
+              {needsAttention.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex flex-col gap-4 rounded-3xl border border-amber-200/70 bg-amber-50 p-5 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <p className="text-base font-medium text-amber-900">
+                    <span aria-hidden>⚠️ </span>
+                    {c.status === "invited" ? (
+                      <>
+                        <span className="font-semibold">{c.name}</span> hasn&apos;t started yet
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-semibold">{c.name}</span> hasn&apos;t checked in for{" "}
+                        {c.lastLog
+                          ? `${Math.floor((now - new Date(c.lastLog.logged_at).getTime()) / (1000 * 60 * 60 * 24))} days`
+                          : "a while"}
+                      </>
+                    )}
+                  </p>
+                  <CheckInButton clientName={c.name} email={c.email} inviteToken={c.invite_token} />
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -154,34 +192,39 @@ export default async function CoachDashboard() {
           )}
 
           <div className="divide-y divide-stone-100">
-            {clientRows.map((c) => (
-              <div key={c.id} className="flex items-center gap-4 px-5 py-4">
-                <div
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-semibold text-white"
-                  style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
-                  aria-hidden
-                >
-                  {c.name.slice(0, 2).toUpperCase()}
+            {clientRows.map((c) => {
+              const hoursSinceLog = c.lastLog ? (now - new Date(c.lastLog.logged_at).getTime()) / (1000 * 60 * 60) : null;
+              const status =
+                c.status === "invited"
+                  ? "Hasn't started yet"
+                  : c.stale
+                    ? "Stale activity"
+                    : hoursSinceLog !== null && hoursSinceLog < 24
+                      ? `Logged ${c.lastLog!.type} ${timeAgo(c.lastLog!.logged_at)}`
+                      : c.lastLog
+                        ? "Everything good"
+                        : "No check-ins yet";
+              return (
+                <div key={c.id} className="flex items-center gap-4 px-5 py-4">
+                  <div
+                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white"
+                    style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
+                    aria-hidden
+                  >
+                    {c.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-base font-semibold text-stone-900">{c.name}</p>
+                    <p className="truncate text-sm text-stone-500">{status}</p>
+                  </div>
+                  {status === "Everything good" && (
+                    <span className="shrink-0 text-xl" aria-hidden title="Doing great">
+                      ✅
+                    </span>
+                  )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-base font-medium text-stone-900">{c.name}</p>
-                  <p className="truncate text-sm text-stone-500">
-                    {c.status === "invited"
-                      ? "Hasn't started yet"
-                      : c.stale
-                        ? "Been quiet a few days"
-                        : c.lastLog
-                          ? `Last check-in ${new Date(c.lastLog.logged_at).toLocaleDateString()}`
-                          : "No check-ins yet"}
-                  </p>
-                </div>
-                {c.status === "active" && !c.stale && (
-                  <span className="shrink-0 text-xl" aria-hidden title="Doing great">
-                    ✅
-                  </span>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
 
