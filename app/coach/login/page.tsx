@@ -4,9 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import Card from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
 
 export default function CoachLoginPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signup");
@@ -64,36 +61,70 @@ export default function CoachLoginPage() {
     router.refresh();
   }
 
-  return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
-      <div className="bg-grid absolute inset-x-0 top-0 h-[420px]" aria-hidden />
+  // !outline-none: the app's global :focus-visible rule (globals.css) sets a
+  // coral outline for the rest of the app's theme; it's unlayered CSS, so it
+  // beats Tailwind utilities on layer priority alone regardless of
+  // specificity. !important is the only reliable way to override it here so
+  // this page's indigo ring (the one actual focus indicator) isn't fighting
+  // a second, mismatched-color outline underneath it.
+  const inputClasses =
+    "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[15px] text-slate-900 " +
+    "placeholder:text-slate-400 !outline-none transition-all duration-200 ease-out " +
+    "hover:border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/40";
 
-      <div className="animate-fade-in-up relative w-full max-w-sm">
+  return (
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-4 py-16">
+      {/* Soft ambient gradient backdrop */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(60% 50% at 50% 0%, rgba(99,102,241,0.10), transparent 70%), " +
+            "radial-gradient(40% 35% at 85% 15%, rgba(16,185,129,0.08), transparent 70%)",
+        }}
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.4]"
+        style={{
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(15,23,42,0.07) 1px, transparent 0)",
+          backgroundSize: "24px 24px",
+          maskImage: "radial-gradient(ellipse 60% 50% at 50% 0%, black 30%, transparent 100%)",
+          WebkitMaskImage: "radial-gradient(ellipse 60% 50% at 50% 0%, black 30%, transparent 100%)",
+        }}
+        aria-hidden
+      />
+
+      <div className="animate-fade-in-up relative w-full max-w-[400px]">
         <Link
           href="/"
-          className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 transition-colors hover:text-stone-900"
+          className="mb-8 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
         >
-          ← CoachLoop
+          <span aria-hidden>←</span> CoachLoop
         </Link>
 
-        <Card className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div
+          className="rounded-2xl border border-slate-100 bg-white/90 p-8 backdrop-blur-sm sm:p-9"
+          style={{ boxShadow: "0 1px 2px rgba(15,23,42,0.04), 0 24px 48px -20px rgba(15,23,42,0.16)" }}
+        >
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <h1 className="text-xl font-semibold text-stone-900">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-[28px]">
                 {mode === "signup" ? "Create your coach account" : "Sign in"}
               </h1>
-              <p className="mt-1 text-sm text-stone-500">
+              <p className="mt-1.5 text-[15px] leading-relaxed text-slate-500">
                 {mode === "signup" ? "Set up your coaching workspace in seconds." : "Welcome back."}
               </p>
             </div>
 
             {mode === "signup" && (
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-stone-700" htmlFor="name">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700" htmlFor="name">
                   Name
                 </label>
-                <Input
+                <input
                   id="name"
+                  className={inputClasses}
                   placeholder="Your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -103,11 +134,12 @@ export default function CoachLoginPage() {
             )}
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-stone-700" htmlFor="email">
+              <label className="mb-1.5 block text-sm font-medium text-slate-700" htmlFor="email">
                 Email
               </label>
-              <Input
+              <input
                 id="email"
+                className={inputClasses}
                 type="email"
                 placeholder="Email"
                 value={email}
@@ -117,11 +149,12 @@ export default function CoachLoginPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-stone-700" htmlFor="password">
+              <label className="mb-1.5 block text-sm font-medium text-slate-700" htmlFor="password">
                 Password
               </label>
-              <Input
+              <input
                 id="password"
+                className={inputClasses}
                 type="password"
                 placeholder="Password"
                 value={password}
@@ -132,27 +165,51 @@ export default function CoachLoginPage() {
             </div>
 
             {error && (
-              <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+              <p className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
+                {error}
+              </p>
             )}
             {info && (
-              <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-700">
                 {info}
               </p>
             )}
 
-            <Button type="submit" disabled={loading} className="w-full">
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full overflow-hidden rounded-xl bg-slate-900 py-3.5 text-[15px] font-semibold text-white
+                transition-all duration-200 ease-out
+                hover:scale-[1.02] hover:bg-black active:scale-[0.98]
+                disabled:pointer-events-none disabled:opacity-50 disabled:hover:scale-100"
+              style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.15), 0 12px 24px -8px rgba(15,23,42,0.35)" }}
+            >
               {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
-            </Button>
+            </button>
 
             <button
               type="button"
-              className="w-full text-center text-sm text-stone-500 underline-offset-4 transition-colors hover:text-stone-900 hover:underline"
+              className="w-full text-center text-sm text-slate-500 transition-colors hover:text-slate-900"
               onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
             >
-              {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
+              {mode === "signup" ? (
+                <>
+                  Already have an account?{" "}
+                  <span className="font-medium text-slate-900 underline decoration-slate-300 decoration-2 underline-offset-4 transition-colors hover:decoration-indigo-500">
+                    Sign in
+                  </span>
+                </>
+              ) : (
+                <>
+                  New here?{" "}
+                  <span className="font-medium text-slate-900 underline decoration-slate-300 decoration-2 underline-offset-4 transition-colors hover:decoration-indigo-500">
+                    Create an account
+                  </span>
+                </>
+              )}
             </button>
           </form>
-        </Card>
+        </div>
       </div>
     </div>
   );
