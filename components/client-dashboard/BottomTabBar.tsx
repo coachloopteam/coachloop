@@ -2,18 +2,18 @@
 
 import { cn } from "@/lib/cn";
 
-export type Tab = "today" | "progress" | "messages";
+export type Tab = "home" | "chat" | "profile";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "today", label: "Today", icon: "☀️" },
-  { id: "progress", label: "Progress", icon: "📈" },
-  { id: "messages", label: "Messages", icon: "💬" },
+  { id: "home", label: "Home", icon: "🏠" },
+  { id: "chat", label: "Chat with Coach", icon: "💬" },
+  { id: "profile", label: "My Profile", icon: "👤" },
 ];
 
 export default function BottomTabBar({ active, onChange }: { active: Tab; onChange: (tab: Tab) => void }) {
   return (
-    <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 border-t border-stone-100 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-md items-stretch justify-around px-2 pt-1.5">
+    <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 border-t border-stone-100 bg-white/85 backdrop-blur-md">
+      <div className="mx-auto flex max-w-md items-stretch justify-around px-1 pt-2">
         {TABS.map((tab) => {
           const isActive = tab.id === active;
           return (
@@ -21,11 +21,11 @@ export default function BottomTabBar({ active, onChange }: { active: Tab; onChan
               key={tab.id}
               onClick={() => onChange(tab.id)}
               aria-current={isActive ? "page" : undefined}
-              className="flex flex-1 flex-col items-center gap-0.5 py-1.5 transition-transform duration-150 active:scale-95"
+              className="flex flex-1 flex-col items-center gap-1 py-1.5 transition-transform duration-150 active:scale-95"
             >
               <span
                 className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-full text-base transition-colors duration-200",
+                  "flex h-11 w-11 items-center justify-center rounded-full text-xl transition-colors duration-200",
                   isActive && "bg-[var(--accent-soft)]"
                 )}
                 aria-hidden
@@ -34,7 +34,7 @@ export default function BottomTabBar({ active, onChange }: { active: Tab; onChan
               </span>
               <span
                 className={cn(
-                  "text-[11px] font-medium transition-colors duration-200",
+                  "text-center text-xs font-semibold leading-tight transition-colors duration-200",
                   isActive ? "text-[var(--accent)]" : "text-stone-400"
                 )}
               >

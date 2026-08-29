@@ -12,19 +12,19 @@ export default function MobileHeader({ name, tasksLeft }: { name: string; tasksL
 
   return (
     <header className="pt-safe sticky top-0 z-20 border-b border-stone-100 bg-white/80 backdrop-blur-md">
-      <div className="flex items-center gap-3 px-4 py-3">
+      <div className="flex items-center gap-3.5 px-5 py-4">
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-bold text-white"
           style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
           aria-hidden
         >
           {initials}
         </div>
         <div className="min-w-0">
-          <p className="truncate text-[15px] font-semibold text-stone-900">
+          <p className="truncate text-lg font-bold text-stone-900">
             {timeOfDayGreeting()}, {name}
           </p>
-          <p className="text-xs text-stone-500">
+          <p className="text-sm text-stone-500">
             {tasksLeft === 0 ? "All caught up for today 🎉" : `${tasksLeft} task${tasksLeft === 1 ? "" : "s"} left today`}
           </p>
         </div>
