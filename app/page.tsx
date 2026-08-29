@@ -1,17 +1,21 @@
 import Link from "next/link";
+import { ArrowRight, AlarmClock, Sparkles, Zap } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { buttonClasses } from "@/components/ui/Button";
 
 const FEATURES = [
   {
+    icon: Zap,
     title: "Effortless logging",
     description: "Clients log meals and workouts in seconds from a link — no app to install.",
   },
   {
+    icon: Sparkles,
     title: "Feedback in your voice",
     description: "AI responses are grounded in the methodology you set, not generic advice.",
   },
   {
+    icon: AlarmClock,
     title: "Never miss a client",
     description: "Stale-activity alerts surface who's gone quiet before they fall off.",
   },
@@ -54,7 +58,7 @@ export default function Home() {
           <div className="animate-fade-in-up mt-9 flex items-center justify-center gap-3" style={{ animationDelay: "200ms" }}>
             <Link href="/coach/login" className={buttonClasses("accent", "lg")}>
               Coach sign in / sign up
-              <span aria-hidden>→</span>
+              <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
             </Link>
           </div>
         </div>
@@ -66,11 +70,11 @@ export default function Home() {
           {FEATURES.map((f) => (
             <Card key={f.title} interactive className="p-6 text-left">
               <div
-                className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-semibold text-white"
+                className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl text-white"
                 style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
                 aria-hidden
               >
-                ✓
+                <f.icon className="h-5 w-5" strokeWidth={1.75} />
               </div>
               <h3 className="text-sm font-semibold text-stone-900">{f.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-stone-500">{f.description}</p>

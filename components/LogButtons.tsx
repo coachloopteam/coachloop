@@ -2,24 +2,27 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Dumbbell, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 type LogType = "meal" | "workout";
 
-const OPTIONS: { type: LogType; icon: string; label: string; placeholder: string; iconBg: string }[] = [
+const OPTIONS: { type: LogType; icon: LucideIcon; label: string; placeholder: string; iconBg: string; iconColor: string }[] = [
   {
     type: "meal",
-    icon: "📸",
+    icon: UtensilsCrossed,
     label: "Log a Meal",
     placeholder: "e.g. Grilled chicken, rice, and a banana",
     iconBg: "#fef3c7",
+    iconColor: "#b45309",
   },
   {
     type: "workout",
-    icon: "💪",
+    icon: Dumbbell,
     label: "Log a Workout",
     placeholder: "e.g. 5x5 squats at 80kg, felt strong",
     iconBg: "var(--accent-soft)",
+    iconColor: "var(--accent)",
   },
 ];
 
@@ -66,13 +69,13 @@ export default function LogButtons({ token }: { token: string }) {
             className="flex flex-col items-center gap-3 rounded-3xl border border-stone-100 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-18px_rgba(0,0,0,0.12)] transition-all duration-200 ease-out hover:-translate-y-0.5 active:scale-[0.97]"
           >
             <span
-              className="flex h-16 w-16 items-center justify-center rounded-2xl text-3xl"
-              style={{ background: o.iconBg }}
+              className="flex h-16 w-16 items-center justify-center rounded-2xl"
+              style={{ background: o.iconBg, color: o.iconColor }}
               aria-hidden
             >
-              {o.icon}
+              <o.icon className="h-7 w-7" strokeWidth={1.5} />
             </span>
-            <span className="text-base font-bold leading-tight text-stone-900">{o.label}</span>
+            <span className="text-base font-semibold leading-tight text-stone-900">{o.label}</span>
           </button>
         ))}
       </div>
@@ -88,11 +91,11 @@ export default function LogButtons({ token }: { token: string }) {
     >
       <div className="flex items-center gap-3">
         <span
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl"
-          style={{ background: active.iconBg }}
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
+          style={{ background: active.iconBg, color: active.iconColor }}
           aria-hidden
         >
-          {active.icon}
+          <active.icon className="h-6 w-6" strokeWidth={1.5} />
         </span>
         <h2 className="text-lg font-bold text-stone-900">{active.label}</h2>
       </div>

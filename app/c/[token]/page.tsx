@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Dumbbell, Sparkles, UtensilsCrossed } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import LogButtons from "@/components/LogButtons";
 
@@ -31,7 +32,7 @@ function groupByDay(entries: LogEntry[]): { label: string; entries: LogEntry[] }
   return groups;
 }
 
-const TYPE_ICON: Record<string, string> = { meal: "📸", workout: "💪" };
+const TYPE_ICON: Record<string, typeof UtensilsCrossed> = { meal: UtensilsCrossed, workout: Dumbbell };
 
 export default async function ClientPortal({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -70,7 +71,7 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
         <div className="animate-fade-in-up flex justify-start">
           <div className="max-w-[85%] rounded-3xl rounded-bl-lg border border-stone-100 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
             <p className="text-base leading-relaxed text-stone-800">
-              Hey {firstName}! 👋 Ready for today? Coached by <span className="font-semibold">{coachName}</span>.
+              Hey {firstName}, ready for today? Coached by <span className="font-semibold">{coachName}</span>.
             </p>
           </div>
         </div>
@@ -91,26 +92,27 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
                   <div className="flex justify-end">
                     <div className="max-w-[85%] rounded-3xl rounded-br-lg bg-stone-900 px-5 py-3.5 text-white">
                       <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-white/60">
-                        <span aria-hidden>{TYPE_ICON[entry.type] ?? "📝"}</span>
+                        {(() => {
+                          const Icon = TYPE_ICON[entry.type] ?? UtensilsCrossed;
+                          return <Icon className="h-3 w-3" strokeWidth={2} aria-hidden />;
+                        })()}
                         {entry.type} · {new Date(entry.logged_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                       </p>
                       <p className="mt-1 text-base leading-relaxed">{entry.content}</p>
                     </div>
                   </div>
 
-                  {/* Coach's feedback — an elegant reply bubble. Not literal
-                      audio (no TTS in this app) — the label and treatment
-                      just evoke that same premium, personal feel. */}
+                  {/* Coach's feedback — an elegant reply bubble. */}
                   {entry.feedback && (
                     <div className="flex justify-start">
                       <div className="max-w-[85%] rounded-3xl rounded-bl-lg border border-stone-100 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                         <div className="flex items-center gap-2">
                           <span
-                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs text-white"
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white"
                             style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
                             aria-hidden
                           >
-                            🎙️
+                            <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
                           </span>
                           <p className="text-xs font-semibold text-stone-500">
                             Coach&apos;s Feedback{" "}

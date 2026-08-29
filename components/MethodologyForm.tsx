@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AlarmClock, Mail, Sparkles } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { Textarea } from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -139,8 +140,8 @@ export default function MethodologyForm({ initial }: Props) {
               pill selector is the honest version of a "toggle" here. */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-50 text-lg" aria-hidden>
-                ⏰
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600" aria-hidden>
+                <AlarmClock className="h-5 w-5" strokeWidth={1.75} />
               </span>
               <div>
                 <p className="text-sm font-medium text-stone-800">Flag clients who&apos;ve gone quiet</p>
@@ -172,8 +173,8 @@ export default function MethodologyForm({ initial }: Props) {
               silently wired to do nothing. */}
           <div className="flex items-center justify-between gap-3 border-t border-stone-100 pt-5 opacity-60">
             <div className="flex items-start gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-stone-100 text-lg" aria-hidden>
-                💌
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-stone-100 text-stone-400" aria-hidden>
+                <Mail className="h-5 w-5" strokeWidth={1.75} />
               </span>
               <div>
                 <p className="flex items-center gap-2 text-sm font-medium text-stone-800">
@@ -222,11 +223,11 @@ export default function MethodologyForm({ initial }: Props) {
                 <div className="max-w-[90%] rounded-3xl rounded-bl-lg border border-stone-100 bg-white px-4 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                   <div className="flex items-center gap-2">
                     <span
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] text-white"
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white"
                       style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
                       aria-hidden
                     >
-                      🎙️
+                      <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
                     </span>
                     <p className="text-xs font-semibold text-stone-500">Your AI assistant</p>
                   </div>

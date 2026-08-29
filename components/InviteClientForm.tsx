@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { CheckCircle2, UserPlus } from "lucide-react";
 import Card from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -64,11 +65,11 @@ export default function InviteClientForm() {
         className="flex w-full items-center gap-4 rounded-3xl border-2 border-dashed border-stone-200 bg-white p-6 text-left transition-all duration-200 ease-out hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] active:scale-[0.99]"
       >
         <span
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl text-white"
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white"
           style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
           aria-hidden
         >
-          ➕
+          <UserPlus className="h-6 w-6" strokeWidth={1.5} />
         </span>
         <span>
           <span className="block text-lg font-semibold text-stone-900">Invite a New Client</span>
@@ -80,7 +81,10 @@ export default function InviteClientForm() {
 
   return (
     <Card className="p-6">
-      <h2 className="text-lg font-semibold text-stone-900">➕ Invite a New Client</h2>
+      <h2 className="flex items-center gap-2 text-lg font-semibold text-stone-900">
+        <UserPlus className="h-5 w-5 text-stone-400" strokeWidth={1.75} aria-hidden />
+        Invite a New Client
+      </h2>
 
       {!link ? (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
@@ -109,7 +113,10 @@ export default function InviteClientForm() {
         </form>
       ) : (
         <div className="animate-fade-in mt-4 space-y-3">
-          <p className="text-base font-medium text-emerald-700">✅ All set! Share this link with them:</p>
+          <p className="flex items-center gap-2 text-base font-medium text-emerald-700">
+            <CheckCircle2 className="h-5 w-5 shrink-0" strokeWidth={1.75} aria-hidden />
+            All set! Share this link with them:
+          </p>
           {/* A readonly input, not a <p> — tapping/clicking it selects the
               text everywhere with zero JS, which is the reliable fallback
               if the Clipboard API below ever fails. */}
