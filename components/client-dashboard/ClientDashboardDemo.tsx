@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
 import MobileHeader from "./MobileHeader";
 import BottomTabBar, { type Tab } from "./BottomTabBar";
-import TaskStream from "./TaskStream";
+import DayStream from "./DayStream";
 import MyProfileTab from "./MyProfileTab";
 import ChatTab from "./ChatTab";
 import ConfettiBurst from "./ConfettiBurst";
@@ -24,6 +25,7 @@ export default function ClientDashboardDemo() {
   const [celebrated, setCelebrated] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [burstKey, setBurstKey] = useState(0);
+  const [justCompletedId, setJustCompletedId] = useState<string | null>(null);
 
   function celebrate(message: string) {
     setToast(message);
@@ -35,14 +37,20 @@ export default function ClientDashboardDemo() {
     // Computed here (not inside the setTasks updater) so the celebration
     // side effect can't double-fire under StrictMode's double-invocation of
     // updater functions.
+    const target = tasks.find((t) => t.id === id);
     const next = tasks.map((t) => (t.id === id ? { ...t, status: toggled(t.status) } : t));
     setTasks(next);
+
+    if (target?.status !== "done") {
+      setJustCompletedId(id);
+      window.setTimeout(() => setJustCompletedId((cur) => (cur === id ? null : cur)), 900);
+    }
 
     const allDone = next.every((t) => t.status === "done");
     if (allDone && !celebrated) {
       setCelebrated(true);
       setStreak((s) => s + 1);
-      celebrate("🎉 All done for today — streak extended!");
+      celebrate("All done for today — streak extended!");
     } else if (!allDone && celebrated) {
       setCelebrated(false);
     }
@@ -57,9 +65,9 @@ export default function ClientDashboardDemo() {
       <main className="relative flex-1 px-4 pb-28 pt-5">
         {tab === "home" && (
           <div className="animate-fade-in space-y-5">
-            <h1 className="text-2xl font-bold tracking-tight text-stone-900">Your Tasks For Today</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-stone-900">Your Day, At a Glance</h1>
             {burstKey > 0 && <ConfettiBurst key={burstKey} />}
-            <TaskStream tasks={tasks} onToggle={toggleTask} />
+            <DayStream tasks={tasks} justCompletedId={justCompletedId} onToggle={toggleTask} />
           </div>
         )}
 
@@ -79,7 +87,8 @@ export default function ClientDashboardDemo() {
         )}
       >
         {toast && (
-          <div className="animate-toast-in pointer-events-auto flex items-center gap-2 rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white shadow-xl">
+          <div className="animate-toast-in pointer-events-auto flex items-center gap-2 rounded-full bg-stone-900/90 px-5 py-3 text-sm font-medium text-white shadow-xl backdrop-blur-md">
+            <Sparkles className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
             {toast}
           </div>
         )}

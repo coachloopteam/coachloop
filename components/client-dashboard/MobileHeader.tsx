@@ -25,7 +25,7 @@ export default function MobileHeader({ name, tasksLeft }: { name: string; tasksL
             {timeOfDayGreeting()}, {name}
           </p>
           <p className="text-sm text-stone-500">
-            {tasksLeft === 0 ? "All caught up for today 🎉" : `${tasksLeft} task${tasksLeft === 1 ? "" : "s"} left today`}
+            {tasksLeft === 0 ? "All caught up for today" : `${tasksLeft} task${tasksLeft === 1 ? "" : "s"} left today`}
           </p>
         </div>
       </div>

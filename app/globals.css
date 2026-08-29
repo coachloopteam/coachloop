@@ -120,6 +120,23 @@ body {
   animation: toast-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Fires once on a card when its task is freshly marked done — a soft ring
+   that expands and fades, reinforcing the completion without a hard cut. */
+@keyframes glow-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 18px rgba(52, 211, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+  }
+}
+.animate-glow-pulse {
+  animation: glow-pulse 900ms ease-out;
+}
+
 @keyframes confetti-burst {
   0% {
     opacity: 1;

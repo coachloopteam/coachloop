@@ -29,7 +29,7 @@ export default function MyProfileTab({
       <div className="grid grid-cols-2 gap-4">
         <div className="rounded-3xl border border-stone-100 bg-white p-6 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <p className="text-4xl font-bold text-stone-900">{streak}</p>
-          <p className="mt-1 text-sm font-medium text-stone-500">Day Streak 🔥</p>
+          <p className="mt-1 text-sm font-medium text-stone-500">Day Streak</p>
         </div>
         <div className="rounded-3xl border border-stone-100 bg-white p-6 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <p className="text-4xl font-bold text-stone-900">{totalCheckins}</p>
