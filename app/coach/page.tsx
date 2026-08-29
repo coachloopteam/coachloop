@@ -51,6 +51,15 @@ export default async function CoachDashboard() {
             <Link href="/coach/methodology" className={buttonClasses("ghost")}>
               Edit methodology
             </Link>
+            {/* Not a real feature — a preview of the client-dashboard design
+                concept (see app/design/client-dashboard/[token]). Only
+                rendered when the preview token is configured, so this link
+                is never broken. */}
+            {process.env.DESIGN_PREVIEW_TOKEN && (
+              <Link href={`/design/client-dashboard/${process.env.DESIGN_PREVIEW_TOKEN}`} className={buttonClasses("ghost")}>
+                Preview: client dashboard concept
+              </Link>
+            )}
           </div>
         </div>
 
