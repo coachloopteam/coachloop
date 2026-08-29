@@ -32,14 +32,18 @@ export default async function CoachDashboard() {
   return (
     <div className="min-h-screen bg-background px-4 py-10 sm:py-14">
       <div className="mx-auto max-w-2xl space-y-6">
-        <div className="animate-fade-in-up flex items-center justify-between gap-4">
+        {/* Stacked unconditionally, not just below a breakpoint: this column is
+            capped at max-w-2xl regardless of screen width, so there's rarely
+            room for a real business name next to three actions on one row —
+            a viewport breakpoint alone wouldn't fix that. */}
+        <div className="animate-fade-in-up flex flex-col gap-3">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-stone-400">Dashboard</p>
             <h1 className="mt-0.5 text-2xl font-semibold tracking-tight text-stone-900">
               {coach?.business_name || coach?.name || "Your dashboard"}
             </h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {coach && <UpgradeButton subscriptionStatus={coach.subscription_status} />}
             <Link href="/coach/account" className={buttonClasses("ghost")}>
               Account & billing
