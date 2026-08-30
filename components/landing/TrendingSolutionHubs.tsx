@@ -6,6 +6,7 @@ import { Dumbbell, Flower2, PersonStanding, Search, Sparkles, UtensilsCrossed, t
 import { DISCIPLINES, RECIPES, type Discipline } from "@/components/concept/mock-data";
 import RevealOnScroll from "./RevealOnScroll";
 import LivePreviewChat from "./LivePreviewChat";
+import GuidedPreviewOverlay from "@/components/GuidedPreviewOverlay";
 import { cn } from "@/lib/cn";
 
 const DISCIPLINE_ICON: Record<Discipline["id"], LucideIcon> = {
@@ -29,6 +30,9 @@ const CHIPS: { key: QueryKey; label: string; icon: LucideIcon }[] = [
 // real user data, since nobody is signed in yet on a marketing page.
 export default function TrendingSolutionHubs() {
   const [query, setQuery] = useState<QueryKey | null>(null);
+  // Tap-to-toggle fallback for the Guided Preview overlay on touch devices
+  // (which have no hover) — desktop reveals it via pure CSS group-hover.
+  const [previewOpenId, setPreviewOpenId] = useState<string | null>(null);
 
   const activeDiscipline = query && query !== "meals" ? DISCIPLINES.find((d) => d.id === query) : null;
 
@@ -45,9 +49,21 @@ export default function TrendingSolutionHubs() {
             {DISCIPLINES.map((d) => {
               const Icon = DISCIPLINE_ICON[d.id];
               return (
+                // A <div>, not a <button> — the Guided Preview overlay
+                // inside has its own real button and range input, and
+                // interactive controls can't nest inside a <button>.
                 <div
                   key={d.id}
-                  className="group relative aspect-[4/5] w-52 shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-100/10 shadow-2xl transition-all duration-700 ease-out hover:scale-[1.03]"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setPreviewOpenId((cur) => (cur === d.id ? null : d.id))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setPreviewOpenId((cur) => (cur === d.id ? null : d.id));
+                    }
+                  }}
+                  className="group relative aspect-[4/5] w-52 shrink-0 cursor-pointer snap-start overflow-hidden rounded-2xl border border-slate-100/10 text-left shadow-2xl transition-all duration-700 ease-out hover:scale-[1.03]"
                 >
                   <Image
                     src={d.image.src}
@@ -68,6 +84,8 @@ export default function TrendingSolutionHubs() {
                     <p className="mt-3 text-base font-semibold text-white">{d.name}</p>
                     <p className="mt-0.5 text-xs leading-snug text-white/60">{d.tagline}</p>
                   </div>
+
+                  <GuidedPreviewOverlay title={d.name} note={d.tagline} open={previewOpenId === d.id} />
                 </div>
               );
             })}

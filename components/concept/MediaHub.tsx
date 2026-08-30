@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Dumbbell, Flower2, PersonStanding, Play, type LucideIcon } from "lucide-react";
 import { DISCIPLINES, type Discipline } from "./mock-data";
+import GuidedPreviewOverlay from "@/components/GuidedPreviewOverlay";
 import { cn } from "@/lib/cn";
 
 const DISCIPLINE_ICON: Record<Discipline["id"], LucideIcon> = {
@@ -19,6 +20,7 @@ const DISCIPLINE_ICON: Record<Discipline["id"], LucideIcon> = {
 // notes on the breakdown photos.
 export default function MediaHub() {
   const [active, setActive] = useState<Discipline["id"]>("fitness");
+  const [previewOpenId, setPreviewOpenId] = useState<string | null>(null);
   const current = DISCIPLINES.find((d) => d.id === active)!;
 
   return (
@@ -60,7 +62,21 @@ export default function MediaHub() {
                 key={b.id}
                 className="group overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_24px_44px_-20px_rgba(0,0,0,0.22)]"
               >
-                <div className="relative h-52 w-full overflow-hidden">
+                {/* A <div>, not the card's own <button> — the Guided
+                    Preview overlay has its own real button and range
+                    input, which can't nest inside a <button>. */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setPreviewOpenId((cur) => (cur === b.id ? null : b.id))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setPreviewOpenId((cur) => (cur === b.id ? null : b.id));
+                    }
+                  }}
+                  className="relative h-52 w-full cursor-pointer overflow-hidden"
+                >
                   <Image
                     src={b.image.src}
                     alt={b.image.alt}
@@ -70,6 +86,8 @@ export default function MediaHub() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" aria-hidden />
                   <p className="absolute inset-x-0 bottom-0 p-4 text-base font-semibold leading-snug text-white">{b.title}</p>
+
+                  <GuidedPreviewOverlay title={b.title} note={b.note} open={previewOpenId === b.id} />
                 </div>
                 <p className="p-4 text-sm leading-relaxed text-stone-500">{b.note}</p>
               </div>
