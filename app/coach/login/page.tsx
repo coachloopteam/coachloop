@@ -1,11 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2, ClipboardCheck, HeartHandshake, Link2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ClipboardCheck, HeartHandshake } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
+
+// Accepts either a bare token or a full pasted portal URL
+// (https://.../c/<token>?...) — takes the /c/ segment if present.
+function extractToken(raw: string): string {
+  const trimmed = raw.trim();
+  const marker = "/c/";
+  const idx = trimmed.indexOf(marker);
+  if (idx === -1) return trimmed;
+  return trimmed.slice(idx + marker.length).split(/[/?#]/)[0];
+}
 
 type Role = "coach" | "client";
 
@@ -25,6 +35,96 @@ export default function LoginPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const [clientMode, setClientMode] = useState<"signin" | "signup">("signin");
+  const [clientEmail, setClientEmail] = useState("");
+  const [clientPassword, setClientPassword] = useState("");
+  const [clientToken, setClientToken] = useState("");
+  const [clientError, setClientError] = useState<string | null>(null);
+  const [clientInfo, setClientInfo] = useState<string | null>(null);
+  const [clientLoading, setClientLoading] = useState(false);
+
+  // Arriving from the portal's "Save your login" link (/coach/login?role=client&token=...)
+  // pre-fills the token and jumps straight to the Client / create-account view.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (params.get("role") === "client") setRole("client");
+    if (token) {
+      setClientToken(token);
+      setClientMode("signup");
+    }
+  }, []);
+
+  async function handleClientSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setClientError(null);
+    setClientInfo(null);
+    setClientLoading(true);
+    const supabase = createClient();
+
+    if (clientMode === "signup") {
+      const token = extractToken(clientToken);
+      if (!token) {
+        setClientError("Enter the private link or code your coach sent you.");
+        setClientLoading(false);
+        return;
+      }
+
+      const res = await fetch("/api/client/claim-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, email: clientEmail, password: clientPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setClientError(data.error ?? "Could not create your account");
+        setClientLoading(false);
+        return;
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: clientEmail,
+        password: clientPassword,
+      });
+      if (signInError) {
+        // Account exists now even though this particular sign-in call
+        // failed — send them to sign in manually rather than stalling here.
+        setClientLoading(false);
+        setClientInfo("Account created — sign in below.");
+        setClientMode("signin");
+        return;
+      }
+
+      router.push(`/c/${token}`);
+      return;
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: clientEmail,
+      password: clientPassword,
+    });
+    if (signInError) {
+      setClientError(signInError.message);
+      setClientLoading(false);
+      return;
+    }
+
+    const { data: authData } = await supabase.auth.getUser();
+    const { data: clientRow } = await supabase
+      .from("clients")
+      .select("invite_token")
+      .eq("auth_user_id", authData?.user?.id ?? "")
+      .single();
+
+    if (!clientRow?.invite_token) {
+      setClientLoading(false);
+      setClientError("Signed in, but couldn't find your portal — ask your coach to check your link.");
+      return;
+    }
+
+    router.push(`/c/${clientRow.invite_token}`);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -308,33 +408,126 @@ export default function LoginPage() {
                 )}
               </form>
             ) : (
-              <div key="client" className="animate-fade-in space-y-6 text-center">
+              <form key="client" onSubmit={handleClientSubmit} className="animate-fade-in space-y-5">
                 <div>
                   <h1 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-[28px]">
-                    Access your daily routine and coach stream.
+                    {clientMode === "signup" ? "Save your login" : "Welcome back"}
                   </h1>
                   <p className="mt-1.5 text-[15px] leading-relaxed text-stone-500">
-                    No account to create, and nothing to sign in to here.
+                    Access your daily routine and coach stream.
                   </p>
                 </div>
 
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
-                  <Link2 className="h-6 w-6" strokeWidth={1.5} aria-hidden />
+                {clientMode === "signup" && (
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-stone-700" htmlFor="client-token">
+                      Your private link or code
+                    </label>
+                    <input
+                      id="client-token"
+                      className={inputClasses}
+                      placeholder="Paste the link your coach sent you"
+                      value={clientToken}
+                      onChange={(e) => setClientToken(e.target.value)}
+                      required
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-stone-700" htmlFor="client-email">
+                    Email
+                  </label>
+                  <input
+                    id="client-email"
+                    className={inputClasses}
+                    type="email"
+                    placeholder="Email"
+                    value={clientEmail}
+                    onChange={(e) => setClientEmail(e.target.value)}
+                    required
+                  />
                 </div>
 
-                <div className="flex items-start gap-3 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3.5 text-left">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-stone-700" htmlFor="client-password">
+                    Password
+                  </label>
+                  <input
+                    id="client-password"
+                    className={inputClasses}
+                    type="password"
+                    placeholder="Password"
+                    value={clientPassword}
+                    onChange={(e) => setClientPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                </div>
+
+                {clientError && (
+                  <p className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
+                    {clientError}
+                  </p>
+                )}
+                {clientInfo && (
+                  <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-700">
+                    {clientInfo}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={clientLoading}
+                  className="group relative w-full overflow-hidden rounded-xl border border-white/10 bg-[#161614] py-3.5 text-[15px] font-semibold text-white
+                    shadow-[0_12px_28px_-12px_rgba(0,0,0,0.5)] transition-all duration-300 ease-out
+                    hover:-translate-y-0.5 hover:scale-[1.01] hover:border-white/0 hover:shadow-[0_18px_36px_-12px_rgba(255,90,95,0.5)]
+                    active:scale-[0.98]
+                    disabled:pointer-events-none disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  <span
+                    className="absolute inset-0 -z-10 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100"
+                    style={{ background: "linear-gradient(120deg, var(--accent), #ff8a65)" }}
+                    aria-hidden
+                  />
+                  {clientLoading ? "Please wait…" : clientMode === "signup" ? "Save my login" : "Sign in"}
+                </button>
+
+                <button
+                  type="button"
+                  className="w-full text-center text-sm text-stone-500 transition-colors hover:text-stone-900"
+                  onClick={() => {
+                    setClientError(null);
+                    setClientInfo(null);
+                    setClientMode(clientMode === "signup" ? "signin" : "signup");
+                  }}
+                >
+                  {clientMode === "signup" ? (
+                    <>
+                      Already saved your login?{" "}
+                      <span className="font-medium text-stone-900 underline decoration-stone-300 decoration-2 underline-offset-4 transition-colors hover:decoration-[var(--accent)]">
+                        Sign in
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      First time here?{" "}
+                      <span className="font-medium text-stone-900 underline decoration-stone-300 decoration-2 underline-offset-4 transition-colors hover:decoration-[var(--accent)]">
+                        Save your login
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                <div className="flex items-start gap-3 border-t border-stone-100 pt-5 text-left">
                   <HeartHandshake className="mt-0.5 h-5 w-5 shrink-0 text-stone-400" strokeWidth={1.5} aria-hidden />
-                  <p className="text-sm leading-relaxed text-stone-600">
-                    Your coach sends you a private link by text or email. Opening it on your phone
-                    takes you straight to your own portal — no password, no app to install.
+                  <p className="text-xs leading-relaxed text-stone-500">
+                    {clientMode === "signup"
+                      ? "Your coach sends you a private link by text or email — paste it above, or open it directly and tap “Save your login” there. You don’t need this at all if you’d rather just use the link every time."
+                      : "Lost your link, or never saved a login? Ask your coach to resend your private link — opening it still gets you straight to your portal, no password needed."}
                   </p>
                 </div>
-
-                <p className="text-xs leading-relaxed text-stone-400">
-                  Lost your link? Ask your coach to resend it — they can grab it from their
-                  dashboard any time.
-                </p>
-              </div>
+              </form>
             )}
           </div>
         </div>

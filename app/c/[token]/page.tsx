@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { Dumbbell, Sparkles, UtensilsCrossed } from "lucide-react";
+import Link from "next/link";
+import { Dumbbell, KeyRound, Sparkles, UtensilsCrossed } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import LogButtons from "@/components/LogButtons";
 
@@ -40,7 +41,7 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
 
   const { data: client } = await supabase
     .from("clients")
-    .select("id, name, coach_id, coaches(name, business_name)")
+    .select("id, name, coach_id, auth_user_id, coaches(name, business_name)")
     .eq("invite_token", token)
     .single();
 
@@ -130,6 +131,16 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
             </div>
           ))}
         </div>
+
+        {!client.auth_user_id && (
+          <Link
+            href={`/coach/login?role=client&token=${token}`}
+            className="flex items-center justify-center gap-2 rounded-full border border-dashed border-stone-200 px-4 py-3 text-sm font-medium text-stone-400 transition-colors duration-200 hover:border-stone-300 hover:text-stone-600"
+          >
+            <KeyRound className="h-4 w-4" strokeWidth={1.5} aria-hidden />
+            Save your login, so you don&apos;t need this link next time
+          </Link>
+        )}
       </div>
     </div>
   );
