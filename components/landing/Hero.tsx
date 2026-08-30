@@ -1,79 +1,107 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Play } from "lucide-react";
 import RevealOnScroll from "./RevealOnScroll";
-import LivePreviewChat from "./LivePreviewChat";
+import Header from "./Header";
+import TrendingSolutionHubs from "./TrendingSolutionHubs";
+
+// Real, verified Unsplash photo (WebSearch + WebFetch of the actual photo
+// page, never guessed) — a trainer actively coaching a client through a
+// lift. There's no video hosting anywhere in this app (see
+// components/concept/MediaHub.tsx's honestly-static "Guided Session"
+// placeholder), so this is the real centerpiece rather than a fabricated
+// video loop; the slow Ken Burns drift (see app/globals.css) is where the
+// "in motion" feeling actually comes from.
+const HERO_MEDIA = {
+  src: "https://images.unsplash.com/photo-1758875568671-9fa1829fe1e3?q=80&w=2000&auto=format&fit=crop",
+  alt: "A coach spotting a client through a barbell squat in a gym",
+};
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden px-4 pb-8 pt-24 sm:pb-16 sm:pt-32">
-      <div className="bg-grid absolute inset-x-0 top-0 h-[560px]" aria-hidden />
+    <section className="relative isolate overflow-hidden bg-stone-950">
+      <Header />
 
-      <div className="relative mx-auto max-w-3xl text-center">
-        <h1
-          className="animate-fade-in-up text-balance text-5xl font-semibold leading-[1.05] tracking-tight text-stone-900 sm:text-7xl"
-        >
-          The premium space for
-          <br />
-          <span
-            className="bg-clip-text text-transparent [filter:drop-shadow(0_2px_18px_rgba(225,74,80,0.35))]"
-            style={{
-              backgroundImage: "linear-gradient(120deg, #e14a50 0%, var(--accent) 35%, #d2482a 70%, #e14a50 100%)",
-            }}
-          >
-            elite coaching and daily growth.
+      <div className="relative min-h-[94vh] overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <Image
+            src={HERO_MEDIA.src}
+            alt={HERO_MEDIA.alt}
+            fill
+            priority
+            sizes="100vw"
+            className="animate-ken-burns object-cover"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/55 to-stone-950/10" aria-hidden />
+        <div className="absolute inset-0 bg-gradient-to-b from-stone-950/70 via-transparent to-transparent" aria-hidden />
+
+        <div className="absolute right-4 top-24 sm:right-8 sm:top-28">
+          <span className="flex items-center gap-2 rounded-full border border-white/15 bg-slate-900/40 px-4 py-2 text-xs font-semibold text-white/70 backdrop-blur-xl">
+            <Play className="h-3.5 w-3.5" strokeWidth={1.5} fill="currentColor" aria-hidden />
+            Elite coaching, in motion
           </span>
-        </h1>
+        </div>
 
-        <p
-          className="animate-fade-in-up mx-auto mt-6 max-w-xl text-balance text-lg leading-relaxed text-stone-500"
-          style={{ animationDelay: "140ms" }}
-        >
-          A beautiful, habit-forming stream where clients log workouts and meals in seconds, and
-          receive personalized feedback grounded in your coach&apos;s exact voice. No clutter, no
-          chaos.
-        </p>
+        <div className="relative z-10 flex min-h-[94vh] flex-col justify-end px-4 pb-20 pt-32 sm:pb-24">
+          <div className="mx-auto w-full max-w-4xl text-center">
+            <RevealOnScroll>
+              <div
+                className="mx-auto overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/40 px-6 py-9 shadow-2xl backdrop-blur-xl transition-all duration-700 ease-out sm:px-14 sm:py-12"
+                style={{ boxShadow: "0 40px 80px -30px rgba(0,0,0,0.6)" }}
+              >
+                <h1 className="text-balance text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-[4.25rem]">
+                  The premium space for
+                  <br />
+                  <span
+                    className="bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage: "linear-gradient(120deg, #ff8a65 0%, var(--accent) 45%, #ffb199 100%)",
+                    }}
+                  >
+                    elite coaching and daily growth.
+                  </span>
+                </h1>
 
-        <div className="animate-fade-in-up mt-10 flex flex-col items-center gap-4" style={{ animationDelay: "200ms" }}>
-          <Link
-            href="/coach/login"
-            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-white/10 bg-[#161614] px-7 py-3.5 text-base font-semibold text-white shadow-[0_12px_32px_-14px_rgba(0,0,0,0.55)] transition-all duration-500 ease-in-out hover:-translate-y-0.5 hover:scale-[1.02] hover:border-white/0 hover:shadow-[0_20px_44px_-12px_rgba(255,90,95,0.55)]"
-          >
-            <span
-              className="absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
-              style={{ background: "linear-gradient(120deg, var(--accent), #ff8a65)" }}
-              aria-hidden
-            />
-            Coach sign in / sign up
-            <ArrowRight className="h-4 w-4 transition-transform duration-500 ease-in-out group-hover:translate-x-1" strokeWidth={1.5} aria-hidden />
-          </Link>
-          <a
-            href="#features"
-            className="text-sm font-medium text-stone-400 underline decoration-stone-200 underline-offset-4 transition-colors duration-300 hover:text-stone-700 hover:decoration-stone-400"
-          >
-            See how it works
-          </a>
+                <p className="mx-auto mt-5 max-w-xl text-balance text-base leading-relaxed text-white/55 sm:text-lg">
+                  A beautiful, habit-forming stream where clients log workouts and meals in seconds, and
+                  receive personalized feedback grounded in your coach&apos;s exact voice. No clutter, no
+                  chaos.
+                </p>
+
+                <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                  <Link
+                    href="/coach/login"
+                    className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-white/10 bg-white px-7 py-3.5 text-base font-semibold text-stone-900 shadow-[0_12px_32px_-14px_rgba(0,0,0,0.6)] transition-all duration-700 ease-out hover:-translate-y-0.5 hover:scale-[1.02]"
+                  >
+                    <span
+                      className="absolute inset-0 -z-10 opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-100"
+                      style={{ background: "linear-gradient(120deg, var(--accent), #ff8a65)" }}
+                      aria-hidden
+                    />
+                    <span className="transition-colors duration-700 ease-out group-hover:text-white">
+                      Coach sign in / sign up
+                    </span>
+                    <ArrowRight
+                      className="h-4 w-4 transition-transform duration-700 ease-out group-hover:translate-x-1 group-hover:text-white"
+                      strokeWidth={1.5}
+                      aria-hidden
+                    />
+                  </Link>
+                  <a
+                    href="#trending"
+                    className="text-sm font-medium text-white/50 underline decoration-white/20 underline-offset-4 transition-colors duration-500 hover:text-white hover:decoration-white/50"
+                  >
+                    See how it works
+                  </a>
+                </div>
+              </div>
+            </RevealOnScroll>
+          </div>
         </div>
       </div>
 
-      <RevealOnScroll delayMs={100} className="relative mx-auto mt-16 max-w-2xl">
-        <div
-          className="overflow-hidden rounded-[2rem] p-8 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.55)] sm:p-10"
-          style={{ background: "radial-gradient(120% 140% at 15% 0%, #2a2a2e 0%, #111113 55%, #0a0a0b 100%)" }}
-        >
-          <div className="flex items-center gap-2.5">
-            <span
-              className="flex h-8 w-8 items-center justify-center rounded-full text-white"
-              style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
-              aria-hidden
-            >
-              <Sparkles className="h-4 w-4" strokeWidth={1.5} />
-            </span>
-            <p className="text-xs font-medium uppercase tracking-wide text-white/40">Live client preview</p>
-          </div>
-
-          <LivePreviewChat />
-        </div>
-      </RevealOnScroll>
+      <TrendingSolutionHubs />
     </section>
   );
 }
