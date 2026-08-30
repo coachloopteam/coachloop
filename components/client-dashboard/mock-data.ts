@@ -2,7 +2,7 @@
 // wired to Supabase. Nothing in the current schema (supabase/schema.sql)
 // models assigned daily tasks, disciplines, or recipe suggestions; clients
 // today free-text log meals/workouts against `logs` (see
-// components/LogButtons.tsx). Shapes below are what a future `daily_tasks`
+// components/ChatPanel.tsx). Shapes below are what a future `daily_tasks`
 // table could look like. Discipline and recipe content is shared with the
 // Workout Hub / Recipe Vault concept — see components/concept/mock-data.ts.
 

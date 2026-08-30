@@ -19,7 +19,7 @@ const DISCIPLINE_ICON: Record<Workout["discipline_type"], LucideIcon> = {
   yoga: Flower2,
 };
 
-// Real, tokenless logging — same pattern as LogButtons.tsx, but posts to
+// Real, tokenless logging — same pattern as ChatPanel.tsx's composer, but posts to
 // /api/daily-log instead of /api/log, which drives the streak/XP trigger
 // on client_gamification. router.refresh() re-fetches the streak/XP shown
 // above this component in app/c/[token]/page.tsx, so there's no separate
