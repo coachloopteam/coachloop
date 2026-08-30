@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import RevealOnScroll from "./RevealOnScroll";
+import LivePreviewChat from "./LivePreviewChat";
 
 export default function Hero() {
   return (
@@ -75,26 +76,7 @@ export default function Hero() {
             <p className="text-xs font-medium uppercase tracking-wide text-white/40">Live client preview</p>
           </div>
 
-          <div className="mt-7 space-y-3">
-            <RevealOnScroll delayMs={150} className="flex justify-end">
-              <div className="max-w-[78%] rounded-3xl rounded-br-lg bg-white px-5 py-3.5 text-stone-900 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.35)]">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-stone-400">Client · today</p>
-                <p className="mt-1 text-sm leading-relaxed">Skipped my run this morning, felt drained.</p>
-              </div>
-            </RevealOnScroll>
-
-            {/* A deliberate human-like pause before the reply, so it reads as
-                a considered response rather than an instant auto-reply. */}
-            <RevealOnScroll delayMs={950} className="flex justify-start">
-              <div className="max-w-[85%] rounded-3xl rounded-bl-lg border border-white/10 bg-white/[0.06] px-5 py-4 backdrop-blur-md">
-                <p className="text-xs font-semibold text-white/50">Feedback, in your coach&apos;s voice</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-white/90">
-                  Totally fine — rest when your body asks for it. Let&apos;s pick the plan back up tomorrow, no
-                  guilt needed.
-                </p>
-              </div>
-            </RevealOnScroll>
-          </div>
+          <LivePreviewChat />
         </div>
       </RevealOnScroll>
     </section>

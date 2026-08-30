@@ -86,16 +86,21 @@ export default function ActivityNutritionTeaser() {
             return (
               <div
                 key={d.id}
-                className="group relative aspect-[3/4] overflow-hidden rounded-3xl border border-stone-200/80 transition-all duration-500 ease-in-out hover:-translate-y-1 hover:shadow-[0_28px_56px_-26px_rgba(0,0,0,0.3)]"
+                className="group relative aspect-[3/4] overflow-hidden rounded-3xl border border-stone-200/80 transition-all duration-500 ease-out hover:scale-[1.02] hover:shadow-2xl"
               >
                 <Image
                   src={img.src}
                   alt={img.alt}
                   fill
                   sizes="(min-width: 640px) 33vw, 100vw"
-                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" aria-hidden />
+                {/* Extra dim on hover — makes the title/tagline pop a little more. */}
+                <div
+                  className="absolute inset-0 bg-black/0 transition-colors duration-500 ease-out group-hover:bg-black/20"
+                  aria-hidden
+                />
                 <div className="absolute inset-x-0 bottom-0 p-5 text-left">
                   <span
                     className="flex h-11 w-11 items-center justify-center rounded-2xl text-white ring-1 ring-white/25 backdrop-blur-md"
@@ -121,7 +126,7 @@ export default function ActivityNutritionTeaser() {
               return (
                 <div
                   key={r.id}
-                  className="group w-[200px] shrink-0 snap-start overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-500 ease-in-out hover:-translate-y-1 hover:shadow-[0_28px_56px_-26px_rgba(0,0,0,0.18)]"
+                  className="group w-[200px] shrink-0 snap-start overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-500 ease-out hover:scale-[1.02] hover:shadow-2xl"
                 >
                   <div className="relative h-36 w-full overflow-hidden">
                     <Image
@@ -129,7 +134,11 @@ export default function ActivityNutritionTeaser() {
                       alt={img.alt}
                       fill
                       sizes="200px"
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    />
+                    <div
+                      className="absolute inset-0 bg-black/0 transition-colors duration-500 ease-out group-hover:bg-black/10"
+                      aria-hidden
                     />
                   </div>
                   <div className="space-y-2.5 p-4">

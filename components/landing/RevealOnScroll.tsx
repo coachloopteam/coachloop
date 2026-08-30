@@ -37,7 +37,7 @@ export default function RevealOnScroll({
   return (
     <div
       ref={ref}
-      className={cn("transition-all duration-700 ease-out", visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8", className)}
+      className={cn("transition-all duration-700 ease-out", visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4", className)}
       style={{ transitionDelay: visible ? `${delayMs}ms` : "0ms" }}
     >
       {children}
