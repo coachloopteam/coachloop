@@ -5,6 +5,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import LogButtons from "@/components/LogButtons";
 import TodaysWorkouts from "@/components/TodaysWorkouts";
 import TodaysRecipes from "@/components/TodaysRecipes";
+import DailyChallenge from "@/components/DailyChallenge";
+import { pickDailyChallengeId } from "@/lib/dailyChallenge";
 
 type LogEntry = {
   id: string;
@@ -93,6 +95,14 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
   const completedWorkoutIds = (todayLogs ?? []).flatMap((l) => (l.workout_id ? [l.workout_id as string] : []));
   const loggedRecipeIds = (todayLogs ?? []).flatMap((l) => (l.recipe_id ? [l.recipe_id as string] : []));
 
+  // One workout is deterministically featured as "Today's Challenge" (see
+  // lib/dailyChallenge.ts) and earns bonus XP when completed — computed
+  // from the same candidate list /api/daily-log uses, so the two agree.
+  const challengeId = pickDailyChallengeId((workouts ?? []).map((w) => w.id));
+  const challengeWorkout = (workouts ?? []).find((w) => w.id === challengeId) ?? null;
+  const otherWorkouts = (workouts ?? []).filter((w) => w.id !== challengeId);
+  const challengeCompleted = challengeId ? completedWorkoutIds.includes(challengeId) : false;
+
   const { data: gamification } = await supabase
     .from("client_gamification")
     .select("current_streak, total_xp")
@@ -128,8 +138,10 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
           <LogButtons token={token} />
         </div>
 
-        {workouts && workouts.length > 0 && (
-          <TodaysWorkouts token={token} workouts={workouts} completedWorkoutIds={completedWorkoutIds} />
+        <DailyChallenge token={token} workout={challengeWorkout} completed={challengeCompleted} />
+
+        {otherWorkouts.length > 0 && (
+          <TodaysWorkouts token={token} workouts={otherWorkouts} completedWorkoutIds={completedWorkoutIds} />
         )}
 
         {recipes && recipes.length > 0 && (

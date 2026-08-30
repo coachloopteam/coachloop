@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { pickDailyChallengeId } from "@/lib/dailyChallenge";
 
 // Public endpoint hit by the client portal (/c/[token]). Same tokenless
 // pattern as app/api/log/route.ts: no Supabase Auth session exists here —
@@ -22,6 +23,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // behavior — "suggestions only, not a checkable task"), so a recipe-only
 // log earns 0 XP; only a workout completion earns XP.
 const WORKOUT_XP_REWARD = 20;
+// "Today's Challenge" isn't a separate table — one workout per day is
+// deterministically featured (see lib/dailyChallenge.ts) and earns a bonus
+// on top of the base reward when THAT workout is the one completed. Total
+// (20 + 15 = 35) matches the mock client-dashboard concept's
+// CHALLENGE_XP_REWARD for continuity.
+const DAILY_CHALLENGE_BONUS_XP = 15;
 
 export async function POST(req: NextRequest) {
   const { token, workoutId, recipeId } = await req.json();
@@ -45,17 +52,27 @@ export async function POST(req: NextRequest) {
   // Confirm the workout/recipe is actually visible to this client — either
   // a shared/global catalog item (coach_id null) or one belonging to their
   // own assigned coach. Prevents logging another coach's private content.
+  // For workouts, fetch the full eligible list (not just the one row) —
+  // needed to compute which id is today's featured challenge, via the same
+  // pickDailyChallengeId() the portal page uses to display it.
+  let isDailyChallenge = false;
   if (workoutId) {
-    const { data: workout } = await supabase
+    // Same shape (order + limit) as the eligible-workouts query in
+    // app/c/[token]/page.tsx — the candidate list must match exactly, or
+    // pickDailyChallengeId() could disagree about which id is today's
+    // challenge between what the page shows and what this route rewards.
+    const { data: eligibleWorkouts } = await supabase
       .from("workouts")
       .select("id")
-      .eq("id", workoutId)
       .or(`coach_id.is.null,coach_id.eq.${client.coach_id}`)
-      .maybeSingle();
+      .order("created_at", { ascending: true })
+      .limit(6);
 
-    if (!workout) {
+    const eligibleIds = (eligibleWorkouts ?? []).map((w) => w.id as string);
+    if (!eligibleIds.includes(workoutId)) {
       return NextResponse.json({ error: "Workout not found" }, { status: 404 });
     }
+    isDailyChallenge = pickDailyChallengeId(eligibleIds) === workoutId;
   }
 
   if (recipeId) {
@@ -71,7 +88,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const xpEarned = workoutId ? WORKOUT_XP_REWARD : 0;
+  const xpEarned = workoutId ? WORKOUT_XP_REWARD + (isDailyChallenge ? DAILY_CHALLENGE_BONUS_XP : 0) : 0;
 
   const { error: insertError } = await supabase.from("daily_logs").insert({
     client_id: client.id,
@@ -106,6 +123,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     xpEarned,
+    isDailyChallenge,
     currentStreak: gamification?.current_streak ?? 0,
     totalXp: gamification?.total_xp ?? 0,
   });
