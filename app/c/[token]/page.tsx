@@ -5,8 +5,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import TodaysWorkouts from "@/components/TodaysWorkouts";
 import TodaysRecipes from "@/components/TodaysRecipes";
 import DailyChallenge from "@/components/DailyChallenge";
-import ChatPanel, { type TimelineEntry } from "@/components/ChatPanel";
+import ChatPanel from "@/components/ChatPanel";
 import { pickDailyChallengeId } from "@/lib/dailyChallenge";
+import type { TimelineEntry } from "@/lib/timeline";
 
 export default async function ClientPortal({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -31,10 +32,10 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
     .order("logged_at", { ascending: false })
     .limit(10);
 
-  const messageEntries: TimelineEntry[] = (history ?? []).map((h) => {
+  const logEntries: TimelineEntry[] = (history ?? []).map((h) => {
     const fb = Array.isArray(h.ai_feedback) ? h.ai_feedback[0] : h.ai_feedback;
     return {
-      kind: "message",
+      kind: "log",
       id: h.id,
       logType: h.type as "meal" | "workout",
       content: h.content,
@@ -42,6 +43,24 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
       feedback: fb?.feedback ?? null,
     };
   });
+
+  // Real coach<->client messages (see supabase/schema_v2_proposed.sql,
+  // section 5). New coach-authored ones arrive via ChatPanel's polling
+  // (app/api/messages/poll) rather than being re-fetched on every render.
+  const { data: messageHistory } = await supabase
+    .from("messages")
+    .select("id, sender_role, content, created_at")
+    .eq("client_id", client.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const chatEntries: TimelineEntry[] = (messageHistory ?? []).map((m) => ({
+    kind: "chat",
+    id: m.id,
+    senderRole: m.sender_role as "coach" | "client",
+    content: m.content,
+    at: m.created_at,
+  }));
 
   // Catalog content visible to this client: the shared/global library
   // (coach_id null) plus anything their own coach has added. See
@@ -95,7 +114,7 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
     };
   });
 
-  const timeline = [...messageEntries, ...completionEntries].sort((a, b) => (a.at < b.at ? 1 : -1));
+  const timeline = [...logEntries, ...completionEntries, ...chatEntries].sort((a, b) => (a.at < b.at ? 1 : -1));
 
   // One workout is deterministically featured as "Today's Challenge" (see
   // lib/dailyChallenge.ts) and earns bonus XP when completed — computed

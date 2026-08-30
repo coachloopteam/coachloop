@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CheckCircle2, KeyRound, Search } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, KeyRound, MessageCircle, Search } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import { cn } from "@/lib/cn";
 
@@ -75,7 +76,11 @@ export default function ClientFinder({ clients }: { clients: ClientRow[] }) {
 
       <div className="divide-y divide-stone-100">
         {filtered.map((c) => (
-          <div key={c.id} className="flex items-center gap-4 px-5 py-4 transition-colors duration-200 hover:bg-stone-50/70">
+          <Link
+            key={c.id}
+            href={`/coach/clients/${c.id}`}
+            className="flex items-center gap-4 px-5 py-4 transition-colors duration-200 hover:bg-stone-50/70"
+          >
             <div
               className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white"
               style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
@@ -102,7 +107,8 @@ export default function ClientFinder({ clients }: { clients: ClientRow[] }) {
                 <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" strokeWidth={1.75} aria-hidden />
               </span>
             )}
-          </div>
+            <MessageCircle className="h-4.5 w-4.5 shrink-0 text-stone-300" strokeWidth={1.5} aria-hidden />
+          </Link>
         ))}
       </div>
     </div>

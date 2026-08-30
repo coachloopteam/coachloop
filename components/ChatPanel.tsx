@@ -4,14 +4,15 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUp, Dumbbell, Sparkles, UtensilsCrossed } from "lucide-react";
 import { cn } from "@/lib/cn";
+import type { TimelineEntry } from "@/lib/timeline";
 
-export type TimelineEntry =
-  | { kind: "message"; id: string; logType: "meal" | "workout"; content: string; at: string; feedback: string | null }
-  | { kind: "completion"; id: string; label: string; xpEarned: number; completionType: "workout" | "recipe"; at: string };
+export type { TimelineEntry };
 
 type CatalogItem = { id: string; title: string };
 
 const TYPE_ICON = { meal: UtensilsCrossed, workout: Dumbbell } as const;
+
+const POLL_INTERVAL_MS = 4000;
 
 function dayLabel(iso: string): string {
   const date = new Date(iso);
@@ -23,12 +24,14 @@ function dayLabel(iso: string): string {
   return date.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
 }
 
-// The premium communication panel: a unified timeline (free-text
-// messages + AI replies, real workout/recipe completions from daily_logs)
-// plus a composer with two real catalog-backed attach actions. Posting
-// still goes through the existing tokenless /api/log — this only changes
-// how the conversation is presented and adds an optimistic "AI is
-// analyzing" bubble for the real, non-trivial time an LLM call takes.
+// The premium communication panel: a unified timeline (free-text logs +
+// AI replies, real workout/recipe completions from daily_logs, and real
+// coach-authored chat messages) plus a composer with two catalog-backed
+// attach actions. Tokenless clients have no auth.uid() for Supabase
+// Realtime's RLS to key off, so new coach messages arrive via polling
+// (see app/api/messages/poll) rather than a push subscription — the
+// coach's own dashboard (CoachChatPanel.tsx) uses real Realtime since it
+// has an authenticated session.
 export default function ChatPanel({
   token,
   coachName,
@@ -47,9 +50,20 @@ export default function ChatPanel({
   const [picker, setPicker] = useState<"workout" | "recipe" | null>(null);
   const [sending, setSending] = useState(false);
   const [pending, setPending] = useState<{ content: string; logType: "meal" | "workout" } | null>(null);
+  const [liveChat, setLiveChat] = useState<TimelineEntry[]>([]);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lastPolledAt = useRef<string>(
+    entries.filter((e) => e.kind === "chat").reduce((max, e) => (e.at > max ? e.at : max), "1970-01-01T00:00:00.000Z")
+  );
+  // Guards against overlapping poll requests (e.g. a slow response still
+  // in flight when the next interval tick fires, or React Strict Mode's
+  // double effect-invocation in dev) — without this, two ticks can both
+  // read the same lastPolledAt.current before either updates it, fetch
+  // the same row twice, and append a duplicate React key.
+  const pollInFlight = useRef(false);
+  const seenIds = useRef(new Set(entries.filter((e) => e.kind === "chat").map((e) => e.id)));
 
   // The optimistic bubble is cleared exactly when the router.refresh()
   // transition settles — by then `entries` carries the real, persisted
@@ -57,6 +71,34 @@ export default function ChatPanel({
   useEffect(() => {
     if (!isPending) setPending(null);
   }, [isPending]);
+
+  // Polls for new coach-authored messages. Real-time-*feeling*, not true
+  // push delivery — see the file-level note above for why.
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (pollInFlight.current) return;
+      pollInFlight.current = true;
+      try {
+        const res = await fetch(`/api/messages/poll?token=${encodeURIComponent(token)}&since=${encodeURIComponent(lastPolledAt.current)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.messages?.length) {
+          const fresh = data.messages.filter((m: { id: string }) => !seenIds.current.has(m.id));
+          const newEntries: TimelineEntry[] = fresh.map((m: { id: string; sender_role: "coach" | "client"; content: string; created_at: string }) => {
+            seenIds.current.add(m.id);
+            return { kind: "chat" as const, id: m.id, senderRole: m.sender_role, content: m.content, at: m.created_at };
+          });
+          if (newEntries.length) setLiveChat((prev) => [...prev, ...newEntries]);
+          lastPolledAt.current = data.messages[data.messages.length - 1].created_at;
+        }
+      } catch {
+        // Transient network hiccup — the next interval tries again.
+      } finally {
+        pollInFlight.current = false;
+      }
+    }, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [token]);
 
   function attach(kind: "workout" | "recipe", title: string) {
     setContent((prev) => (prev.trim() ? `${prev.trim()} ${title} — ` : `${title} — `));
@@ -88,7 +130,7 @@ export default function ChatPanel({
   }
 
   const groups: { label: string; items: TimelineEntry[] }[] = [];
-  for (const e of [...entries].reverse()) {
+  for (const e of [...entries, ...liveChat].reverse()) {
     const label = dayLabel(e.at);
     const existing = groups.find((g) => g.label === label);
     if (existing) existing.items.push(e);
@@ -219,6 +261,36 @@ function TimelineBubble({ entry, coachName }: { entry: TimelineEntry; coachName:
           <Icon className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
           {entry.label} {entry.completionType === "workout" ? "completed" : "logged"}
           {entry.xpEarned > 0 && <span className="text-emerald-500">+{entry.xpEarned} XP</span>}
+        </div>
+      </div>
+    );
+  }
+
+  if (entry.kind === "chat") {
+    const fromCoach = entry.senderRole === "coach";
+    return (
+      <div className={cn("flex", fromCoach ? "justify-start" : "justify-end")}>
+        <div
+          className={cn(
+            "max-w-[85%] rounded-3xl px-5 py-3.5",
+            fromCoach
+              ? "rounded-bl-lg border border-stone-100 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+              : "rounded-br-lg bg-stone-900 text-white"
+          )}
+        >
+          {fromCoach && (
+            <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-stone-400">
+              <span
+                className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white"
+                style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
+                aria-hidden
+              >
+                {coachName.slice(0, 1).toUpperCase()}
+              </span>
+              {coachName}
+            </p>
+          )}
+          <p className={cn("text-base leading-relaxed", fromCoach ? "text-stone-800" : "text-white")}>{entry.content}</p>
         </div>
       </div>
     );

@@ -1,13 +1,14 @@
--- CoachLoop schema v2 (PROPOSED / DRAFT — NOT APPLIED)
+-- CoachLoop schema v2 — APPLIED to the live project (see supabase/schema.sql
+-- for the original base schema this extends). Kept here as the reviewable
+-- source of truth for what's live, applied section by section over several
+-- rounds via the Supabase MCP's apply_migration/execute_sql, each verified
+-- against real data before moving to the next.
 --
 -- Extends supabase/schema.sql to support: richer coach/client profiles,
 -- a real coach<->client assignment history (leads, active, paused, ended),
 -- dual-sided gamification (client streak/XP, coach retention/achievements),
--- and a catalog-backed workout/recipe/daily-log system.
---
--- This file is a review draft only. Apply it against a Supabase branch or
--- staging project first, never directly against production — several
--- statements here (see "MIGRATION NOTE" below) change existing constraints.
+-- a catalog-backed workout/recipe/daily-log system, and real bidirectional
+-- coach<->client messaging.
 --
 -- Two deliberate departures from what was asked, kept consistent with this
 -- app's actual architecture:
@@ -367,3 +368,53 @@ create policy "coach reads own clients gamification" on client_gamification
 -- these RLS policies at all. Their daily_logs inserts go through a
 -- service-role API route after validating invite_token, exactly like the
 -- existing `logs` table today (see app/api/log/route.ts).
+
+-- ============================================================================
+-- 5. REAL BIDIRECTIONAL MESSAGING — messages
+-- ============================================================================
+
+-- Separate from `logs` (free-text meal/workout entries that drive AI
+-- feedback) — this is a plain chat channel. No token/session column:
+-- client_id already implies both the client and (via clients.coach_id)
+-- their coach, same pattern as logs/ai_feedback/daily_logs.
+create table if not exists messages (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references clients(id) on delete cascade,
+  sender_role text not null check (sender_role in ('coach', 'client')),
+  content text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists messages_client_id_idx on messages(client_id);
+-- Composite, not just created_at — every real query filters by client_id
+-- first (a client's own polling, or the coach's single-client thread view).
+create index if not exists messages_client_created_idx on messages(client_id, created_at);
+
+alter table messages enable row level security;
+
+create policy "client reads own messages" on messages
+  for select using (client_id in (select id from clients where auth_user_id = auth.uid()));
+
+create policy "coach reads own clients messages" on messages
+  for select using (
+    client_id in (select c.id from clients c join coaches co on co.id = c.coach_id where co.auth_user_id = auth.uid())
+  );
+
+-- Only coaches insert through RLS (authenticated dashboard session, real
+-- Supabase Realtime subscription — safe since it's scoped by auth.uid()).
+-- Tokenless clients (no auth.users row — the majority) can't safely use
+-- direct Realtime the same way: RLS has no auth.uid() to key off for them,
+-- so a client-authored message would need a service-role API route after
+-- token validation, same as `logs`/`daily_logs` — not built, since this
+-- round only wires the coach-authored direction. The client side instead
+-- polls a token-validated endpoint for new coach messages every few
+-- seconds — an approximation of real-time that fits the tokenless model
+-- safely, rather than true push delivery. See app/api/messages/poll/route.ts
+-- and components/ChatPanel.tsx.
+create policy "coach sends messages to own clients" on messages
+  for insert with check (
+    sender_role = 'coach'
+    and client_id in (select c.id from clients c join coaches co on co.id = c.coach_id where co.auth_user_id = auth.uid())
+  );
+
+alter publication supabase_realtime add table messages;
