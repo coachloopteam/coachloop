@@ -56,6 +56,10 @@ export type Recipe = {
   calories: number;
   glutenFree: boolean;
   lactoseFree: boolean;
+  // Real, verified Unsplash photos (via WebSearch + WebFetch of the actual
+  // photo page — never guessed) under the free Unsplash License. Only
+  // sourced for the 5 recipes actually shown (RECIPES.slice(0, 5)).
+  image?: { src: string; alt: string };
 };
 
 export const RECIPES: Recipe[] = [
@@ -67,6 +71,10 @@ export const RECIPES: Recipe[] = [
     calories: 720,
     glutenFree: true,
     lactoseFree: false,
+    image: {
+      src: "https://images.unsplash.com/photo-1702648982253-8b851013e81f?q=80&w=1000&auto=format&fit=crop",
+      alt: "Oatmeal bowl topped with fruit and nuts",
+    },
   },
   {
     id: "r2",
@@ -76,6 +84,10 @@ export const RECIPES: Recipe[] = [
     calories: 540,
     glutenFree: true,
     lactoseFree: true,
+    image: {
+      src: "https://images.unsplash.com/photo-1695882257148-b35580f4c4b6?q=80&w=1000&auto=format&fit=crop",
+      alt: "Salmon and mushrooms cooking on a grill",
+    },
   },
   {
     id: "r3",
@@ -85,6 +97,10 @@ export const RECIPES: Recipe[] = [
     calories: 680,
     glutenFree: true,
     lactoseFree: true,
+    image: {
+      src: "https://images.unsplash.com/photo-1567932783552-e305bbf70b63?q=80&w=1000&auto=format&fit=crop",
+      alt: "Grilled meat platter on a dark surface",
+    },
   },
   {
     id: "r4",
@@ -94,6 +110,10 @@ export const RECIPES: Recipe[] = [
     calories: 380,
     glutenFree: true,
     lactoseFree: false,
+    image: {
+      src: "https://images.unsplash.com/photo-1636044992466-ba190da5d40b?q=80&w=1000&auto=format&fit=crop",
+      alt: "Layered yogurt parfait with fresh fruit",
+    },
   },
   {
     id: "r5",
@@ -103,6 +123,10 @@ export const RECIPES: Recipe[] = [
     calories: 750,
     glutenFree: true,
     lactoseFree: true,
+    image: {
+      src: "https://images.unsplash.com/photo-1781334266250-a7e72fdf539f?q=80&w=1000&auto=format&fit=crop",
+      alt: "Plates of roasted chicken, rice, and salad",
+    },
   },
   {
     id: "r6",

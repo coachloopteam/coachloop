@@ -27,29 +27,6 @@ const DISCIPLINE_IMAGES: Record<Discipline["id"], { src: string; alt: string }> 
   },
 };
 
-const RECIPE_IMAGES: Record<string, { src: string; alt: string }> = {
-  r1: {
-    src: "https://images.unsplash.com/photo-1702648982253-8b851013e81f?q=80&w=800&auto=format&fit=crop",
-    alt: "Oatmeal bowl topped with fruit and nuts",
-  },
-  r2: {
-    src: "https://images.unsplash.com/photo-1695882257148-b35580f4c4b6?q=80&w=800&auto=format&fit=crop",
-    alt: "Salmon and mushrooms cooking on a grill",
-  },
-  r3: {
-    src: "https://images.unsplash.com/photo-1567932783552-e305bbf70b63?q=80&w=800&auto=format&fit=crop",
-    alt: "Grilled meat platter on a dark surface",
-  },
-  r4: {
-    src: "https://images.unsplash.com/photo-1636044992466-ba190da5d40b?q=80&w=800&auto=format&fit=crop",
-    alt: "Layered yogurt parfait with fresh fruit",
-  },
-  r5: {
-    src: "https://images.unsplash.com/photo-1781334266250-a7e72fdf539f?q=80&w=800&auto=format&fit=crop",
-    alt: "Plates of roasted chicken, rice, and salad",
-  },
-};
-
 // Muted, "trendy cafe" tag tones rather than saturated status colors — pale
 // gold for energy-dense, sage for nutrient-dense, warm gray for dietary tags.
 const TAG_STYLES = {
@@ -122,7 +99,7 @@ export default function ActivityNutritionTeaser() {
           <div className="mt-4 flex snap-x snap-mandatory gap-3.5 overflow-x-auto scroll-smooth pb-2 pl-1 pr-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {RECIPES.slice(0, 5).map((r) => {
               const isHighCal = r.category === "high-calorie";
-              const img = RECIPE_IMAGES[r.id];
+              const img = r.image!;
               return (
                 <div
                   key={r.id}

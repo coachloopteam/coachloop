@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Check, Clock, Package, Target, X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -41,6 +42,12 @@ export default function WorkoutDetailModal({
   onComplete: () => void;
 }) {
   const [justCompleted, setJustCompleted] = useState(false);
+  // Portal target isn't available during SSR — render nothing until mounted.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) setJustCompleted(false);
@@ -61,10 +68,12 @@ export default function WorkoutDetailModal({
     window.setTimeout(onClose, 1400);
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       className={cn(
-        "fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4",
+        "fixed inset-0 z-50 isolate flex items-end justify-center sm:items-center sm:p-4",
         open ? "pointer-events-auto" : "pointer-events-none"
       )}
       aria-hidden={!open}
@@ -149,6 +158,7 @@ export default function WorkoutDetailModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

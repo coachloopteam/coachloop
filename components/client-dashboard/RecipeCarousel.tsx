@@ -1,13 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { Flame, Leaf } from "lucide-react";
-import { RECIPES } from "@/components/concept/mock-data";
+import { RECIPES, type Recipe } from "@/components/concept/mock-data";
 import { cn } from "@/lib/cn";
+import RecipeDetailModal from "./RecipeDetailModal";
 
 // Suggestions only — informational, not a checkable task. Shares content
 // with the Recipe Vault concept (components/concept/RecipeVault.tsx); see
 // that file's note on schema. Nothing here saves or logs anything.
 export default function RecipeCarousel() {
+  const [selected, setSelected] = useState<Recipe | null>(null);
+
   return (
     <div>
       <h3 className="px-1 text-lg font-bold leading-snug text-stone-900">Today&apos;s Meal Ideas</h3>
@@ -17,9 +21,10 @@ export default function RecipeCarousel() {
         {RECIPES.slice(0, 5).map((r) => {
           const isHighCal = r.category === "high-calorie";
           return (
-            <div
+            <button
               key={r.id}
-              className="w-[168px] shrink-0 snap-start overflow-hidden rounded-3xl border border-stone-100 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-18px_rgba(0,0,0,0.12)] transition-all duration-300 ease-in-out active:scale-[0.97]"
+              onClick={() => setSelected(r)}
+              className="w-[168px] shrink-0 snap-start overflow-hidden rounded-3xl border border-stone-100 bg-white text-left shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-18px_rgba(0,0,0,0.12)] transition-all duration-300 ease-in-out active:scale-[0.97]"
             >
               <div
                 className="flex h-20 items-center justify-center"
@@ -60,10 +65,12 @@ export default function RecipeCarousel() {
                   )}
                 </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
+
+      <RecipeDetailModal recipe={selected} open={selected !== null} onClose={() => setSelected(null)} />
     </div>
   );
 }
