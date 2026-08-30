@@ -100,10 +100,12 @@ export default function DayStream({
   tasks,
   justCompletedId,
   onToggle,
+  onLogMeal,
 }: {
   tasks: Task[];
   justCompletedId: string | null;
   onToggle: (id: string) => void;
+  onLogMeal: (recipeId: string) => void;
 }) {
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const detailTask = tasks.find((t) => t.id === detailTaskId) ?? null;
@@ -119,8 +121,9 @@ export default function DayStream({
             onOpenDetail={task.type === "workout" ? () => setDetailTaskId(task.id) : undefined}
           />
           {/* Recipe suggestions sit inline in the stream right after the
-              workout entry — browsable, not a checkable step. */}
-          {task.type === "workout" && i === 0 && <RecipeCarousel />}
+              workout entry — browsable, not a checkable step, except for
+              the "Mark as Eaten" quick-action on each card. */}
+          {task.type === "workout" && i === 0 && <RecipeCarousel onLogMeal={onLogMeal} />}
         </div>
       ))}
 

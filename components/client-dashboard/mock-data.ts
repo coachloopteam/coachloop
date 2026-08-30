@@ -52,3 +52,4 @@ export const XP_PER_LEVEL = 500;
 export const TASK_XP_REWARD = 20;
 export const WORKOUT_START_XP_REWARD = 20;
 export const CHALLENGE_XP_REWARD = 35;
+export const MEAL_XP_REWARD = 15;

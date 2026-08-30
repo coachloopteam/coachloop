@@ -22,6 +22,7 @@ import {
   XP_PER_LEVEL,
   TASK_XP_REWARD,
   WORKOUT_START_XP_REWARD,
+  MEAL_XP_REWARD,
   type Task,
   type TaskStatus,
 } from "./mock-data";
@@ -89,6 +90,11 @@ export default function ClientDashboardDemo({ token }: { token?: string }) {
     celebrate(`+${reward} XP — challenge completed!`);
   }
 
+  function handleLogMeal() {
+    earnXp(MEAL_XP_REWARD);
+    celebrate(`+${MEAL_XP_REWARD} XP — meal logged!`);
+  }
+
   const tasksLeft = tasks.filter((t) => t.status !== "done").length;
 
   return (
@@ -119,7 +125,7 @@ export default function ClientDashboardDemo({ token }: { token?: string }) {
                 </span>
               </Link>
             )}
-            <DayStream tasks={tasks} justCompletedId={justCompletedId} onToggle={toggleTask} />
+            <DayStream tasks={tasks} justCompletedId={justCompletedId} onToggle={toggleTask} onLogMeal={handleLogMeal} />
           </div>
         )}
 
