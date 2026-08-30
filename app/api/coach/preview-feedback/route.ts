@@ -4,10 +4,13 @@ import { generateFeedback } from "@/lib/ai";
 
 // A realistic client message to preview against — not tied to any real
 // client's data, just a fixed example the coach's current (possibly
-// unsaved) methodology settings are run against.
+// unsaved) methodology settings are run against. Must match
+// SAMPLE_CLIENT_MESSAGE in components/MethodologyForm.tsx, which renders
+// the "sent" bubble independently rather than round-tripping this content
+// through the response.
 const SAMPLE_ENTRY = {
   type: "meal" as const,
-  content: "Had a rough day, skipped my workout and ate a whole pizza. Feeling pretty guilty about it.",
+  content: "Hey coach, I struggled with the Pilates session today and missed my breakfast.",
 };
 
 export async function POST(req: NextRequest) {

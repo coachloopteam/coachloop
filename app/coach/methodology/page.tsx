@@ -17,10 +17,10 @@ export default async function MethodologyPage() {
 
   return (
     <div className="min-h-screen bg-background px-4 py-10 sm:py-14">
-      <div className="mx-auto max-w-5xl space-y-6">
+      <div className="mx-auto max-w-6xl space-y-6">
         <div className="animate-fade-in-up flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-stone-400">Settings</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-stone-400">Voice &amp; Automation Studio</p>
             <h1 className="mt-0.5 text-2xl font-semibold tracking-tight text-stone-900">
               Feedback in your voice
             </h1>

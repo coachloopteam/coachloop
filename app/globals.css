@@ -154,6 +154,22 @@ body {
   animation: xp-glow-pulse 900ms ease-out;
 }
 
+/* A gentle, continuous drift for the "floating" phone mockup on the
+   methodology page — subtle enough to read as premium ambience, not a
+   distraction on a settings screen someone revisits often. */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
 /* A reply bubble that has finished "thinking" — scales up into place rather
    than just fading, so it reads as arriving deliberately. */
 @keyframes scale-fade-in {
