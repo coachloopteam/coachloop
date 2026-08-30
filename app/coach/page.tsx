@@ -71,8 +71,27 @@ export default async function CoachDashboard() {
   // this dashboard — see CoachGrowthCard for the badge-level presentation.
   const activatedClients = clientRows.filter((c) => c.status !== "invited");
   const retainedClients = activatedClients.filter((c) => c.status === "active" && !c.stale);
+
+  // coach_gamification.client_retention_rate is the trigger-maintained
+  // source of truth (recomputed on every clients.status change — see
+  // supabase/schema_v2_proposed.sql), preferred over recalculating inline.
+  // Falls back to the inline calc only if that row is somehow missing
+  // despite having activated clients (shouldn't happen post-backfill, but
+  // keeps this resilient). activatedClients.length gates it either way —
+  // the DB function stores 0.00 for zero-client coaches, which must read
+  // as "no data yet" (null → "Getting Started"), not "0% retention".
+  const { data: coachGamification } = await supabase
+    .from("coach_gamification")
+    .select("client_retention_rate, total_checkins_completed")
+    .eq("coach_id", coach?.id)
+    .maybeSingle();
+
   const retentionRate =
-    activatedClients.length > 0 ? Math.round((retainedClients.length / activatedClients.length) * 100) : null;
+    activatedClients.length === 0
+      ? null
+      : coachGamification
+        ? Math.round(Number(coachGamification.client_retention_rate))
+        : Math.round((retainedClients.length / activatedClients.length) * 100);
 
   const clientFinderRows: ClientRow[] = clientRows.map((c) => {
     const hoursSinceLog = c.lastLog ? (now - new Date(c.lastLog.logged_at).getTime()) / (1000 * 60 * 60) : null;
