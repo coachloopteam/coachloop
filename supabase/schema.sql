@@ -32,6 +32,10 @@ create table if not exists coaches (
 -- apply yet anyway since there's no coaches row to match auth.uid() against
 -- until this runs. Applied directly against the live project; captured here
 -- for the record.
+-- Fires for every new auth.users row, coach or client (see clients.auth_user_id
+-- below) — must opt out of the coaches insert when raw_user_meta_data->>'role'
+-- is 'client'. Omitting the field (the existing coach signup flow) still
+-- defaults to the coach path, so it's unaffected.
 create or replace function public.handle_new_coach()
 returns trigger
 language plpgsql
@@ -39,8 +43,10 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.coaches (auth_user_id, name)
-  values (new.id, coalesce(new.raw_user_meta_data->>'name', ''));
+  if coalesce(new.raw_user_meta_data->>'role', 'coach') = 'coach' then
+    insert into public.coaches (auth_user_id, name)
+    values (new.id, coalesce(new.raw_user_meta_data->>'name', ''));
+  end if;
   return new;
 end;
 $$;
@@ -49,9 +55,11 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function handle_new_coach();
 
--- One row per client. Clients do NOT get a Supabase Auth account for the MVP —
--- they're identified by an unguessable invite_token in their portal URL
--- (/c/<invite_token>), so onboarding is "open the link", not "create a password".
+-- One row per client. Primarily identified by an unguessable invite_token in
+-- their portal URL (/c/<invite_token>) — zero setup, no account required.
+-- auth_user_id is an OPTIONAL Supabase Auth account layered on top (see
+-- app/api/client/claim-account/route.ts): nullable, since most clients will
+-- never create one and the token link keeps working unchanged either way.
 create table if not exists clients (
   id uuid primary key default gen_random_uuid(),
   coach_id uuid not null references coaches(id) on delete cascade,
@@ -60,11 +68,13 @@ create table if not exists clients (
   invite_token text not null unique,
   status text not null default 'invited'
     check (status in ('invited','active','paused')),
+  auth_user_id uuid unique references auth.users(id) on delete set null,
   created_at timestamptz not null default now()
 );
 
 create index if not exists clients_coach_id_idx on clients(coach_id);
 create index if not exists clients_invite_token_idx on clients(invite_token);
+create index if not exists clients_auth_user_id_idx on clients(auth_user_id);
 
 -- Every meal/workout entry a client submits.
 create table if not exists logs (
@@ -127,6 +137,23 @@ create policy "coach reads own clients feedback" on ai_feedback
       join coaches co on co.id = c.coach_id
       where co.auth_user_id = auth.uid()
     )
+  );
+
+-- Clients with an optional Supabase Auth account (auth_user_id set via
+-- app/api/client/claim-account) can read their own row and history once
+-- signed in. Clients without one keep using the token-validated
+-- service-role reads in app/c/[token]/page.tsx — RLS never applies there.
+create policy "client reads own row" on clients
+  for select using (auth.uid() = auth_user_id);
+
+create policy "client reads own logs" on logs
+  for select using (
+    client_id in (select id from clients where auth_user_id = auth.uid())
+  );
+
+create policy "client reads own feedback" on ai_feedback
+  for select using (
+    client_id in (select id from clients where auth_user_id = auth.uid())
   );
 
 -- Mirrors Paddle customer/subscription/transaction state from verified
