@@ -80,7 +80,8 @@ export default function LoginPage() {
   const inputClasses =
     "w-full rounded-xl border border-stone-200 bg-white px-4 py-3.5 text-[15px] text-stone-900 " +
     "placeholder:text-stone-400 !outline-none transition-all duration-200 ease-out " +
-    "hover:border-stone-300 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]";
+    "hover:border-stone-300 focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)] " +
+    "focus:shadow-[0_6px_20px_-6px_rgba(255,90,95,0.4)]";
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -159,34 +160,35 @@ export default function LoginPage() {
             className="rounded-2xl border border-stone-100 bg-white/90 p-8 backdrop-blur-sm sm:p-9 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none"
             style={{ boxShadow: "0 1px 2px rgba(15,23,42,0.04), 0 24px 48px -20px rgba(15,23,42,0.16)" }}
           >
-            <div className="mb-7 grid grid-cols-2 gap-3">
+            <div className="relative mb-7 flex rounded-full border border-stone-200 bg-stone-100/70 p-1 backdrop-blur-md">
+              <div
+                className="absolute inset-y-1 left-1 rounded-full bg-stone-900 shadow-[0_10px_24px_-10px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-out"
+                style={{ width: "calc(50% - 4px)", transform: role === "client" ? "translateX(100%)" : "translateX(0%)" }}
+                aria-hidden
+              />
               <button
                 type="button"
                 onClick={() => setRole("coach")}
                 aria-pressed={role === "coach"}
                 className={cn(
-                  "flex flex-col items-center gap-2.5 rounded-2xl border p-5 text-center transition-all duration-300 ease-out",
-                  role === "coach"
-                    ? "border-transparent bg-stone-900 text-white shadow-[0_16px_32px_-16px_rgba(0,0,0,0.45)]"
-                    : "border-stone-200 bg-white text-stone-400 hover:-translate-y-0.5 hover:border-stone-300"
+                  "relative z-10 flex flex-1 items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold transition-colors duration-300 ease-out",
+                  role === "coach" ? "text-white" : "text-stone-500 hover:text-stone-800"
                 )}
               >
-                <ClipboardCheck className="h-6 w-6" strokeWidth={1.5} aria-hidden />
-                <span className="text-sm font-semibold">Coach</span>
+                <ClipboardCheck className="h-4 w-4" strokeWidth={1.5} aria-hidden />
+                I am a Coach
               </button>
               <button
                 type="button"
                 onClick={() => setRole("client")}
                 aria-pressed={role === "client"}
                 className={cn(
-                  "flex flex-col items-center gap-2.5 rounded-2xl border p-5 text-center transition-all duration-300 ease-out",
-                  role === "client"
-                    ? "border-transparent bg-stone-900 text-white shadow-[0_16px_32px_-16px_rgba(0,0,0,0.45)]"
-                    : "border-stone-200 bg-white text-stone-400 hover:-translate-y-0.5 hover:border-stone-300"
+                  "relative z-10 flex flex-1 items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold transition-colors duration-300 ease-out",
+                  role === "client" ? "text-white" : "text-stone-500 hover:text-stone-800"
                 )}
               >
-                <HeartHandshake className="h-6 w-6" strokeWidth={1.5} aria-hidden />
-                <span className="text-sm font-semibold">Client</span>
+                <HeartHandshake className="h-4 w-4" strokeWidth={1.5} aria-hidden />
+                I am a Client
               </button>
             </div>
 
@@ -197,7 +199,7 @@ export default function LoginPage() {
                     {mode === "signup" ? "Create your workspace" : "Sign in to your dashboard"}
                   </h1>
                   <p className="mt-1.5 text-[15px] leading-relaxed text-stone-500">
-                    {mode === "signup" ? "Set up your coaching workspace in seconds." : "Welcome back."}
+                    Access your workspace and management tools.
                   </p>
                 </div>
 
@@ -309,7 +311,7 @@ export default function LoginPage() {
               <div key="client" className="animate-fade-in space-y-6 text-center">
                 <div>
                   <h1 className="text-2xl font-bold tracking-tight text-stone-900 sm:text-[28px]">
-                    Access your daily routine
+                    Access your daily routine and coach stream.
                   </h1>
                   <p className="mt-1.5 text-[15px] leading-relaxed text-stone-500">
                     No account to create, and nothing to sign in to here.

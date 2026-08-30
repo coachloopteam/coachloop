@@ -9,16 +9,10 @@ export default function Hero() {
       <div className="bg-grid absolute inset-x-0 top-0 h-[560px]" aria-hidden />
 
       <div className="relative mx-auto max-w-3xl text-center">
-        <div className="animate-fade-in-up inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white/80 px-3.5 py-1.5 text-xs font-medium text-stone-600 backdrop-blur-md">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          Built for independent coaches, not developers
-        </div>
-
         <h1
-          className="animate-fade-in-up mt-7 text-balance text-5xl font-semibold leading-[1.05] tracking-tight text-stone-900 sm:text-7xl"
-          style={{ animationDelay: "80ms" }}
+          className="animate-fade-in-up text-balance text-5xl font-semibold leading-[1.05] tracking-tight text-stone-900 sm:text-7xl"
         >
-          AI-assisted coaching,
+          The premium space for
           <br />
           <span
             className="bg-clip-text text-transparent [filter:drop-shadow(0_2px_18px_rgba(225,74,80,0.35))]"
@@ -26,16 +20,17 @@ export default function Hero() {
               backgroundImage: "linear-gradient(120deg, #e14a50 0%, var(--accent) 35%, #d2482a 70%, #e14a50 100%)",
             }}
           >
-            without the WhatsApp thread
+            elite coaching and daily growth.
           </span>
         </h1>
 
         <p
-          className="animate-fade-in-up mx-auto mt-6 max-w-lg text-balance text-lg leading-relaxed text-stone-500"
+          className="animate-fade-in-up mx-auto mt-6 max-w-xl text-balance text-lg leading-relaxed text-stone-500"
           style={{ animationDelay: "140ms" }}
         >
-          Your clients log meals and workouts from a link — no app to install — and get feedback in
-          your voice, automatically, every time.
+          A beautiful, habit-forming stream where clients log workouts and meals in seconds, and
+          receive personalized feedback grounded in your coach&apos;s exact voice. No clutter, no
+          chaos.
         </p>
 
         <div className="animate-fade-in-up mt-10 flex flex-col items-center gap-4" style={{ animationDelay: "200ms" }}>

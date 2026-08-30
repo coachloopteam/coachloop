@@ -70,7 +70,7 @@ export default function ActivityNutritionTeaser() {
                   alt={img.alt}
                   fill
                   sizes="(min-width: 640px) 33vw, 100vw"
-                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" aria-hidden />
                 {/* Extra dim on hover — makes the title/tagline pop a little more. */}
@@ -111,7 +111,7 @@ export default function ActivityNutritionTeaser() {
                       alt={img.alt}
                       fill
                       sizes="200px"
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                     />
                     <div
                       className="absolute inset-0 bg-black/0 transition-colors duration-500 ease-out group-hover:bg-black/10"
