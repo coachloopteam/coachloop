@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Dumbbell, KeyRound, Sparkles, UtensilsCrossed } from "lucide-react";
+import { Dumbbell, Flame, KeyRound, Sparkles, UtensilsCrossed } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import LogButtons from "@/components/LogButtons";
+import TodaysWorkouts from "@/components/TodaysWorkouts";
 
 type LogEntry = {
   id: string;
@@ -64,6 +65,32 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
   });
   const groups = groupByDay(entries);
 
+  // Catalog workouts visible to this client: the shared/global library
+  // (coach_id null) plus anything their own coach has added. See
+  // supabase/schema_v2_proposed.sql — daily_logs/workouts/client_gamification.
+  const workoutFilter = client.coach_id ? `coach_id.is.null,coach_id.eq.${client.coach_id}` : "coach_id.is.null";
+  const { data: workouts } = await supabase
+    .from("workouts")
+    .select("id, title, discipline_type, detail, duration_minutes")
+    .or(workoutFilter)
+    .order("created_at", { ascending: true })
+    .limit(6);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: todayLogs } = await supabase
+    .from("daily_logs")
+    .select("workout_id")
+    .eq("client_id", client.id)
+    .eq("log_date", today)
+    .not("workout_id", "is", null);
+  const completedWorkoutIds = (todayLogs ?? []).map((l) => l.workout_id as string);
+
+  const { data: gamification } = await supabase
+    .from("client_gamification")
+    .select("current_streak, total_xp")
+    .eq("client_id", client.id)
+    .maybeSingle();
+
   return (
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="mx-auto max-w-md space-y-6">
@@ -74,12 +101,28 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
             <p className="text-base leading-relaxed text-stone-800">
               Hey {firstName}, ready for today? Coached by <span className="font-semibold">{coachName}</span>.
             </p>
+            {gamification && (gamification.current_streak > 0 || gamification.total_xp > 0) && (
+              <p className="mt-2 flex items-center gap-3 text-sm font-semibold text-stone-500">
+                <span className="flex items-center gap-1 text-amber-600">
+                  <Flame className="h-4 w-4 fill-amber-400" strokeWidth={1.5} aria-hidden />
+                  {gamification.current_streak}-day streak
+                </span>
+                <span className="flex items-center gap-1">
+                  <Sparkles className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+                  {gamification.total_xp} XP
+                </span>
+              </p>
+            )}
           </div>
         </div>
 
         <div className="animate-fade-in-up">
           <LogButtons token={token} />
         </div>
+
+        {workouts && workouts.length > 0 && (
+          <TodaysWorkouts token={token} workouts={workouts} completedWorkoutIds={completedWorkoutIds} />
+        )}
 
         <div className="space-y-6">
           {groups.map((group) => (
