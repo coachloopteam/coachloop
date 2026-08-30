@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Check, Dumbbell, Flower2, NotebookPen, PersonStanding, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { Discipline } from "@/components/concept/mock-data";
 import type { Task, TaskType } from "./mock-data";
 import RecipeCarousel from "./RecipeCarousel";
+import WorkoutDetailModal from "./WorkoutDetailModal";
 
 const DISCIPLINE_ICON: Record<Discipline["id"], LucideIcon> = {
   fitness: Dumbbell,
@@ -22,9 +24,20 @@ function iconFor(task: Task): LucideIcon {
   return TYPE_ICON[task.type];
 }
 
-function TaskCard({ task, justCompleted, onToggle }: { task: Task; justCompleted: boolean; onToggle: (id: string) => void }) {
+function TaskCard({
+  task,
+  justCompleted,
+  onToggle,
+  onOpenDetail,
+}: {
+  task: Task;
+  justCompleted: boolean;
+  onToggle: (id: string) => void;
+  onOpenDetail?: () => void;
+}) {
   const isDone = task.status === "done";
   const Icon = iconFor(task);
+  const clickable = task.type === "workout" && Boolean(onOpenDetail);
 
   return (
     <div
@@ -34,7 +47,12 @@ function TaskCard({ task, justCompleted, onToggle }: { task: Task; justCompleted
         justCompleted && "animate-glow-pulse"
       )}
     >
-      <div className="flex items-start gap-4">
+      <div
+        role={clickable ? "button" : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        onClick={clickable ? onOpenDetail : undefined}
+        className={cn("flex items-start gap-4", clickable && "-m-1 cursor-pointer rounded-2xl p-1 transition-colors duration-200 hover:bg-stone-50")}
+      >
         <span
           className={cn(
             "flex h-14 w-14 shrink-0 items-center justify-center transition-all duration-300 ease-in-out",
@@ -52,6 +70,7 @@ function TaskCard({ task, justCompleted, onToggle }: { task: Task; justCompleted
           )}
           <h3 className="text-xl font-bold leading-snug text-stone-900">{task.title}</h3>
           <p className="mt-1.5 text-base leading-relaxed text-stone-500">{task.detail}</p>
+          {clickable && <p className="mt-1.5 text-sm font-semibold text-[var(--accent)]">View workout</p>}
         </div>
       </div>
 
@@ -86,16 +105,32 @@ export default function DayStream({
   justCompletedId: string | null;
   onToggle: (id: string) => void;
 }) {
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
+  const detailTask = tasks.find((t) => t.id === detailTaskId) ?? null;
+
   return (
     <div className="space-y-5">
       {tasks.map((task, i) => (
         <div key={task.id} className="space-y-5">
-          <TaskCard task={task} justCompleted={task.id === justCompletedId} onToggle={onToggle} />
+          <TaskCard
+            task={task}
+            justCompleted={task.id === justCompletedId}
+            onToggle={onToggle}
+            onOpenDetail={task.type === "workout" ? () => setDetailTaskId(task.id) : undefined}
+          />
           {/* Recipe suggestions sit inline in the stream right after the
               workout entry — browsable, not a checkable step. */}
           {task.type === "workout" && i === 0 && <RecipeCarousel />}
         </div>
       ))}
+
+      <WorkoutDetailModal
+        open={detailTask !== null}
+        title={detailTask?.title ?? ""}
+        completed={detailTask?.status === "done"}
+        onClose={() => setDetailTaskId(null)}
+        onComplete={() => detailTask && onToggle(detailTask.id)}
+      />
     </div>
   );
 }
