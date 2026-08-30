@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Flame, Leaf } from "lucide-react";
+import Image from "next/image";
 import { RECIPES, type Recipe } from "@/components/concept/mock-data";
 import { cn } from "@/lib/cn";
 import RecipeDetailModal from "./RecipeDetailModal";
 
 // Suggestions only — informational, not a checkable task. Shares content
 // with the Recipe Vault concept (components/concept/RecipeVault.tsx); see
-// that file's note on schema. Nothing here saves or logs anything.
+// that file's note on schema. Nothing here saves or logs anything. Every
+// recipe shown here now carries a real image, so the whole list can render.
 export default function RecipeCarousel() {
   const [selected, setSelected] = useState<Recipe | null>(null);
 
@@ -18,41 +19,38 @@ export default function RecipeCarousel() {
       <p className="mt-1 px-1 text-sm text-stone-500">A few suggestions from your coach&apos;s recipe vault.</p>
 
       <div className="mt-4 flex snap-x snap-mandatory gap-3.5 overflow-x-auto pb-2 pl-1 pr-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {RECIPES.slice(0, 5).map((r) => {
+        {RECIPES.map((r) => {
           const isHighCal = r.category === "high-calorie";
           return (
             <button
               key={r.id}
               onClick={() => setSelected(r)}
-              className="w-[168px] shrink-0 snap-start overflow-hidden rounded-3xl border border-stone-100 bg-white text-left shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-18px_rgba(0,0,0,0.12)] transition-all duration-300 ease-in-out active:scale-[0.97]"
+              className="group w-[176px] shrink-0 snap-start overflow-hidden rounded-3xl border border-stone-100 bg-white text-left shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_32px_-18px_rgba(0,0,0,0.12)] transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_20px_36px_-18px_rgba(0,0,0,0.2)] active:scale-[0.97]"
             >
-              <div
-                className="flex h-20 items-center justify-center"
-                style={{
-                  background: isHighCal
-                    ? "linear-gradient(135deg, #fde4c8, #fbb768)"
-                    : "linear-gradient(135deg, #dcecd9, #9fc79a)",
-                }}
-                aria-hidden
-              >
-                {isHighCal ? (
-                  <Flame className="h-6 w-6 text-amber-700/70" strokeWidth={1.25} />
-                ) : (
-                  <Leaf className="h-6 w-6 text-emerald-800/60" strokeWidth={1.25} />
+              <div className="relative h-28 w-full overflow-hidden">
+                {r.image && (
+                  <Image
+                    src={r.image.src}
+                    alt={r.image.alt}
+                    fill
+                    sizes="176px"
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  />
                 )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/0 to-black/0" aria-hidden />
+                <span
+                  className={cn(
+                    "absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold backdrop-blur-md",
+                    isHighCal ? "bg-[#f6ecd9]/90 text-[#8a6a2f]" : "bg-[#e7ede2]/90 text-[#4f6146]"
+                  )}
+                >
+                  {isHighCal ? "High-Calorie Boost" : "Nutrient-Dense"}
+                </span>
               </div>
               <div className="space-y-2 p-3.5">
                 <p className="text-sm font-semibold leading-snug text-stone-900">{r.name}</p>
                 <p className="text-xs text-stone-400">{r.calories} kcal</p>
                 <div className="flex flex-wrap gap-1">
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
-                      isHighCal ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"
-                    )}
-                  >
-                    {isHighCal ? "High-Calorie" : "Nutrient-Rich"}
-                  </span>
                   {r.glutenFree && (
                     <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600">
                       Gluten-Free

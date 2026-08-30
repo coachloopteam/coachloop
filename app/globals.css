@@ -137,6 +137,23 @@ body {
   animation: glow-pulse 900ms ease-out;
 }
 
+/* Same idea as glow-pulse above, in the indigo tone of the XP bar — fires
+   once whenever XP is earned, so the bar visibly celebrates the gain. */
+@keyframes xp-glow-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(67, 56, 202, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(67, 56, 202, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(67, 56, 202, 0);
+  }
+}
+.animate-xp-glow-pulse {
+  animation: xp-glow-pulse 900ms ease-out;
+}
+
 /* A reply bubble that has finished "thinking" — scales up into place rather
    than just fading, so it reads as arriving deliberately. */
 @keyframes scale-fade-in {

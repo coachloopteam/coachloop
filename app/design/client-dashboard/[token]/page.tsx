@@ -24,7 +24,7 @@ export default async function ClientDashboardDesignPage({ params }: { params: Pr
       <div className="bg-amber-50 px-4 py-2 text-center text-xs font-medium text-amber-800">
         Design concept — mock data, not wired to a real account. See components/client-dashboard/.
       </div>
-      <ClientDashboardDemo />
+      <ClientDashboardDemo token={token} />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Flame } from "lucide-react";
+import { cn } from "@/lib/cn";
 
 function timeOfDayGreeting(): string {
   const hour = new Date().getHours();
@@ -27,6 +29,18 @@ export default function MobileHeader({
   const initials = name.slice(0, 2).toUpperCase();
   const xpIntoLevel = xp % xpGoal;
   const pct = Math.min(100, Math.round((xpIntoLevel / xpGoal) * 100));
+
+  const [pulsing, setPulsing] = useState(false);
+  const prevXp = useRef(xp);
+  useEffect(() => {
+    if (xp > prevXp.current) {
+      setPulsing(true);
+      const t = window.setTimeout(() => setPulsing(false), 900);
+      prevXp.current = xp;
+      return () => window.clearTimeout(t);
+    }
+    prevXp.current = xp;
+  }, [xp]);
 
   return (
     <header className="pt-safe sticky top-0 z-20 border-b border-stone-100 bg-white/80 backdrop-blur-md">
@@ -67,7 +81,12 @@ export default function MobileHeader({
             {xpIntoLevel} / {xpGoal} XP
           </span>
         </div>
-        <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-stone-100">
+        <div
+          className={cn(
+            "mt-1.5 h-2 w-full overflow-hidden rounded-full bg-stone-100 transition-all duration-500 ease-out",
+            pulsing && "animate-xp-glow-pulse"
+          )}
+        >
           <div
             className="h-full rounded-full transition-all duration-700 ease-out"
             style={{ width: `${pct}%`, background: "linear-gradient(90deg, #4338ca, #64748b)" }}

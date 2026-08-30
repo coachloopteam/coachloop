@@ -64,6 +64,16 @@ const RECIPE_DETAILS: Record<string, RecipeDetail> = {
       "Assemble the bowl with rice, chicken, beans, and salsa.",
     ],
   },
+  r6: {
+    prepTime: "10 min",
+    servings: "1 serving",
+    steps: [
+      "Toss the mixed greens with the roasted peppers and chickpeas.",
+      "Whisk the tahini dressing until smooth, thinning with water as needed.",
+      "Drizzle over the salad and toss to coat.",
+      "Serve chilled.",
+    ],
+  },
 };
 
 const TAG_STYLES = {

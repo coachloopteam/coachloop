@@ -13,6 +13,10 @@ export type Discipline = {
   // photo page — never guessed) under the free Unsplash License.
   image: { src: string; alt: string };
   workouts: { id: string; title: string; detail: string; duration: string }[];
+  // Form/alignment breakdown cards for the Media Hub concept — same
+  // sourcing rule as `image`: every photo verified against its real
+  // Unsplash photo page, never guessed.
+  breakdown: { id: string; title: string; note: string; image: { src: string; alt: string } }[];
 };
 
 export const DISCIPLINES: Discipline[] = [
@@ -30,6 +34,35 @@ export const DISCIPLINES: Discipline[] = [
       { id: "f2", title: "Conditioning Circuit", detail: "Kettlebell swings, sled push, rowing intervals", duration: "30 min" },
       { id: "f3", title: "Upper Body Push/Pull", detail: "Overhead press, pull-ups, accessory work", duration: "45 min" },
     ],
+    breakdown: [
+      {
+        id: "fb1",
+        title: "Barbell Rollout — Core Control",
+        note: "Hips stay low and braced as the bar rolls forward under control, driven by the core rather than the shoulders.",
+        image: {
+          src: "https://images.unsplash.com/photo-1647828150413-1717ace5bac2?q=80&w=800&auto=format&fit=crop",
+          alt: "Person performing a kneeling barbell rollout in a gym",
+        },
+      },
+      {
+        id: "fb2",
+        title: "Hip-Hinge & Deadlift Setup",
+        note: "Bar stays close to the shins, spine neutral, and the pull starts from the floor through the heels.",
+        image: {
+          src: "https://images.unsplash.com/photo-1751456357787-fe644b095838?q=80&w=800&auto=format&fit=crop",
+          alt: "Woman performing a barbell deadlift in a gym",
+        },
+      },
+      {
+        id: "fb3",
+        title: "Plank & Core Bracing",
+        note: "Ribs stacked over the pelvis, glutes engaged, and a straight line from shoulders to heels.",
+        image: {
+          src: "https://images.unsplash.com/photo-1674600625236-ad76734fee0d?q=80&w=800&auto=format&fit=crop",
+          alt: "Woman holding a plank position on a yoga mat",
+        },
+      },
+    ],
   },
   {
     id: "pilates",
@@ -45,6 +78,35 @@ export const DISCIPLINES: Discipline[] = [
       { id: "p2", title: "Mat Core Series", detail: "Roll-ups, teasers, side-plank series", duration: "35 min" },
       { id: "p3", title: "Posture & Alignment", detail: "Spinal articulation and shoulder stability", duration: "30 min" },
     ],
+    breakdown: [
+      {
+        id: "pb1",
+        title: "Reformer Side-Plank Extension",
+        note: "Hips stay lifted and stacked as the free arm reaches overhead, carriage held steady beneath a braced core.",
+        image: {
+          src: "https://images.unsplash.com/photo-1747239202356-764770773c9a?q=80&w=800&auto=format&fit=crop",
+          alt: "Woman performing a side-plank extension on a pilates reformer",
+        },
+      },
+      {
+        id: "pb2",
+        title: "Reformer Split Stretch",
+        note: "The working leg extends long while the standing leg stays grounded, hips square to the reformer.",
+        image: {
+          src: "https://images.unsplash.com/photo-1754257320374-cd5fb647cfea?q=80&w=800&auto=format&fit=crop",
+          alt: "Woman performing a split stretch on a pilates reformer",
+        },
+      },
+      {
+        id: "pb3",
+        title: "Spinal Articulation",
+        note: "Move through the spine segment by segment rather than hinging from one point.",
+        image: {
+          src: "https://images.unsplash.com/photo-1758599881262-7b79a56ac284?q=80&w=800&auto=format&fit=crop",
+          alt: "Woman doing a spine-mobility stretch on a mat",
+        },
+      },
+    ],
   },
   {
     id: "yoga",
@@ -59,6 +121,35 @@ export const DISCIPLINES: Discipline[] = [
       { id: "y1", title: "Morning Vinyasa Flow", detail: "Sun salutations into standing sequence", duration: "35 min" },
       { id: "y2", title: "Deep Hip Mobility", detail: "Hip openers held for 90 seconds each", duration: "40 min" },
       { id: "y3", title: "Restorative Wind-Down", detail: "Supported poses, breathwork, long holds", duration: "25 min" },
+    ],
+    breakdown: [
+      {
+        id: "yb1",
+        title: "Warrior II Alignment",
+        note: "Front knee stacks over the ankle, hips open to the side, and the gaze holds steady over the front hand.",
+        image: {
+          src: "https://images.unsplash.com/photo-1561577732-12fffa81b37e?q=80&w=800&auto=format&fit=crop",
+          alt: "Woman practicing warrior pose in a forest",
+        },
+      },
+      {
+        id: "yb2",
+        title: "Tree Pose Balance",
+        note: "Root down through the standing foot before lifting — the pelvis stays level, not tilted toward the raised leg.",
+        image: {
+          src: "https://images.unsplash.com/photo-1758274525911-402f99afec14?q=80&w=800&auto=format&fit=crop",
+          alt: "Women practicing tree pose outdoors in a park",
+        },
+      },
+      {
+        id: "yb3",
+        title: "Seated Forward Fold",
+        note: "Hinge from the hips, not the waist, keeping the spine long as the chest reaches toward the legs.",
+        image: {
+          src: "https://images.unsplash.com/photo-1758599880788-e49f6ee77bc7?q=80&w=800&auto=format&fit=crop",
+          alt: "Woman in a seated forward fold stretch on a mat",
+        },
+      },
     ],
   },
 ];
@@ -159,6 +250,10 @@ export const RECIPES: Recipe[] = [
     calories: 410,
     glutenFree: true,
     lactoseFree: true,
+    image: {
+      src: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1000&auto=format&fit=crop",
+      alt: "Vibrant vegetable salad bowl with chickpeas and greens",
+    },
     macros: { protein: 16, carbs: 46, fat: 18 },
   },
 ];

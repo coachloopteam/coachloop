@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Film, Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
 import MobileHeader from "./MobileHeader";
 import BottomTabBar, { type Tab } from "./BottomTabBar";
 import DayStream from "./DayStream";
 import ForYouCarousel from "./ForYouCarousel";
 import SmartMatchSearch from "./SmartMatchSearch";
+import CoachFinder from "./CoachFinder";
 import DailyChallenge from "./DailyChallenge";
 import MyProfileTab from "./MyProfileTab";
 import ChatTab from "./ChatTab";
@@ -31,7 +33,7 @@ function toggled(status: TaskStatus): TaskStatus {
   return status === "done" ? "pending" : "done";
 }
 
-export default function ClientDashboardDemo() {
+export default function ClientDashboardDemo({ token }: { token?: string }) {
   const [tab, setTab] = useState<Tab>("home");
   const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
   const [streak, setStreak] = useState(MOCK_STREAK_DAYS);
@@ -102,6 +104,21 @@ export default function ClientDashboardDemo() {
             <DailyChallenge onComplete={handleCompleteChallenge} />
             <ForYouCarousel onStartWorkout={handleStartWorkout} />
             <SmartMatchSearch />
+            <CoachFinder />
+            {token && (
+              <Link
+                href={`/design/media-hub/${token}`}
+                className="flex items-center gap-4 rounded-3xl border border-stone-100 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-500 ease-out hover:-translate-y-0.5 hover:shadow-[0_20px_36px_-18px_rgba(0,0,0,0.16)] active:scale-[0.99]"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-stone-50 text-stone-700" aria-hidden>
+                  <Film className="h-5 w-5" strokeWidth={1.5} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-base font-semibold text-stone-900">Instructional Media Hub</span>
+                  <span className="block text-sm text-stone-500">Form breakdowns for Fitness, Yoga &amp; Pilates</span>
+                </span>
+              </Link>
+            )}
             <DayStream tasks={tasks} justCompletedId={justCompletedId} onToggle={toggleTask} />
           </div>
         )}

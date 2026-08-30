@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertTriangle, CheckCircle2, CreditCard, KeyRound, NotebookPen } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CreditCard, NotebookPen } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import InviteClientForm from "@/components/InviteClientForm";
 import CheckInButton from "@/components/CheckInButton";
 import Card from "@/components/ui/Card";
-import Badge from "@/components/ui/Badge";
+import CoachGrowthCard from "@/components/CoachGrowthCard";
+import ClientFinder, { type ClientRow } from "@/components/ClientFinder";
 
 function timeAgo(iso: string): string {
   const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -64,6 +65,38 @@ export default async function CoachDashboard() {
 
   const needsAttention = clientRows.filter((c) => c.status === "invited" || c.stale);
 
+  // "Retention" here means: of clients who ever actually started (i.e. not
+  // still sitting on an unopened invite), what share are currently active
+  // and not gone quiet. Real, computed from the same data as the rest of
+  // this dashboard — see CoachGrowthCard for the badge-level presentation.
+  const activatedClients = clientRows.filter((c) => c.status !== "invited");
+  const retainedClients = activatedClients.filter((c) => c.status === "active" && !c.stale);
+  const retentionRate =
+    activatedClients.length > 0 ? Math.round((retainedClients.length / activatedClients.length) * 100) : null;
+
+  const clientFinderRows: ClientRow[] = clientRows.map((c) => {
+    const hoursSinceLog = c.lastLog ? (now - new Date(c.lastLog.logged_at).getTime()) / (1000 * 60 * 60) : null;
+    if (c.status === "invited") {
+      return { id: c.id, name: c.name, hasAccount: Boolean(c.auth_user_id), status: "Hasn't started yet", statusKind: "invited" };
+    }
+    if (c.stale) {
+      return { id: c.id, name: c.name, hasAccount: Boolean(c.auth_user_id), status: "Stale activity", statusKind: "stale" };
+    }
+    if (hoursSinceLog !== null && hoursSinceLog < 24) {
+      return {
+        id: c.id,
+        name: c.name,
+        hasAccount: Boolean(c.auth_user_id),
+        status: `Logged ${c.lastLog!.type} ${timeAgo(c.lastLog!.logged_at)}`,
+        statusKind: "recent",
+      };
+    }
+    if (c.lastLog) {
+      return { id: c.id, name: c.name, hasAccount: Boolean(c.auth_user_id), status: "Everything good", statusKind: "good" };
+    }
+    return { id: c.id, name: c.name, hasAccount: Boolean(c.auth_user_id), status: "No check-ins yet", statusKind: "none" };
+  });
+
   const firstName = coach?.name?.split(" ")[0] || "there";
   const planMessage =
     coach?.subscription_status === "active"
@@ -100,6 +133,8 @@ export default async function CoachDashboard() {
             <p className="mt-1 text-xs font-medium leading-tight text-stone-500">New Clients This Month</p>
           </div>
         </div>
+
+        <CoachGrowthCard retentionRate={retentionRate} checkInsToday={activeToday} activatedCount={activatedClients.length} />
 
         {!coach?.training_philosophy && (
           <Link
@@ -188,7 +223,7 @@ export default async function CoachDashboard() {
 
         <Card className="animate-fade-in-up overflow-hidden">
           <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
-            <h2 className="text-lg font-semibold text-stone-900">Your Clients</h2>
+            <h2 className="text-lg font-semibold text-stone-900">Find a Client</h2>
             {clientRows.length > 0 && (
               <p className="text-xs font-medium text-stone-400">
                 {clientRows.filter((c) => c.auth_user_id).length} of {clientRows.length} have saved a login
@@ -196,55 +231,11 @@ export default async function CoachDashboard() {
             )}
           </div>
 
-          {!clientRows.length && (
+          {!clientRows.length ? (
             <p className="px-5 py-8 text-center text-base text-stone-400">You haven&apos;t invited anyone yet.</p>
+          ) : (
+            <ClientFinder clients={clientFinderRows} />
           )}
-
-          <div className="divide-y divide-stone-100">
-            {clientRows.map((c) => {
-              const hoursSinceLog = c.lastLog ? (now - new Date(c.lastLog.logged_at).getTime()) / (1000 * 60 * 60) : null;
-              const status =
-                c.status === "invited"
-                  ? "Hasn't started yet"
-                  : c.stale
-                    ? "Stale activity"
-                    : hoursSinceLog !== null && hoursSinceLog < 24
-                      ? `Logged ${c.lastLog!.type} ${timeAgo(c.lastLog!.logged_at)}`
-                      : c.lastLog
-                        ? "Everything good"
-                        : "No check-ins yet";
-              return (
-                <div key={c.id} className="flex items-center gap-4 px-5 py-4 transition-colors duration-200 hover:bg-stone-50/70">
-                  <div
-                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white"
-                    style={{ background: "linear-gradient(135deg, var(--accent), #ff8a65)" }}
-                    aria-hidden
-                  >
-                    {c.name.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="flex items-center gap-2 truncate text-base font-semibold text-stone-900">
-                      <span className="truncate">{c.name}</span>
-                      {c.auth_user_id && (
-                        <span title="Has saved a login — signs in directly instead of using their link">
-                          <Badge variant="neutral" className="shrink-0 gap-1 px-2 py-0.5">
-                            <KeyRound className="h-3 w-3" strokeWidth={1.75} aria-hidden />
-                            Account
-                          </Badge>
-                        </span>
-                      )}
-                    </p>
-                    <p className="truncate text-sm text-stone-500">{status}</p>
-                  </div>
-                  {status === "Everything good" && (
-                    <span title="Doing great">
-                      <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" strokeWidth={1.75} aria-hidden />
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
         </Card>
 
         {/* Not coach-facing features — kept out of the main flow for this
@@ -262,6 +253,12 @@ export default async function CoachDashboard() {
               className="text-xs text-stone-300 transition-colors hover:text-stone-400"
             >
               Preview: workout hub & recipe vault concept
+            </Link>
+            <Link
+              href={`/design/media-hub/${process.env.DESIGN_PREVIEW_TOKEN}`}
+              className="text-xs text-stone-300 transition-colors hover:text-stone-400"
+            >
+              Preview: instructional media hub concept
             </Link>
           </div>
         )}
