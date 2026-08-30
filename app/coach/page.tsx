@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertTriangle, CheckCircle2, CreditCard, NotebookPen } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CreditCard, KeyRound, NotebookPen } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import InviteClientForm from "@/components/InviteClientForm";
 import CheckInButton from "@/components/CheckInButton";
 import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
 
 function timeAgo(iso: string): string {
   const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -31,7 +32,7 @@ export default async function CoachDashboard() {
 
   const { data: clients } = await supabase
     .from("clients")
-    .select("id, name, email, invite_token, status, created_at, logs(type, logged_at)")
+    .select("id, name, email, invite_token, status, auth_user_id, created_at, logs(type, logged_at)")
     .eq("coach_id", coach?.id)
     .order("created_at", { ascending: false });
 
@@ -186,7 +187,14 @@ export default async function CoachDashboard() {
         </div>
 
         <Card className="animate-fade-in-up overflow-hidden">
-          <h2 className="border-b border-stone-100 px-5 py-4 text-lg font-semibold text-stone-900">Your Clients</h2>
+          <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
+            <h2 className="text-lg font-semibold text-stone-900">Your Clients</h2>
+            {clientRows.length > 0 && (
+              <p className="text-xs font-medium text-stone-400">
+                {clientRows.filter((c) => c.auth_user_id).length} of {clientRows.length} have saved a login
+              </p>
+            )}
+          </div>
 
           {!clientRows.length && (
             <p className="px-5 py-8 text-center text-base text-stone-400">You haven&apos;t invited anyone yet.</p>
@@ -215,7 +223,17 @@ export default async function CoachDashboard() {
                     {c.name.slice(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-base font-semibold text-stone-900">{c.name}</p>
+                    <p className="flex items-center gap-2 truncate text-base font-semibold text-stone-900">
+                      <span className="truncate">{c.name}</span>
+                      {c.auth_user_id && (
+                        <span title="Has saved a login — signs in directly instead of using their link">
+                          <Badge variant="neutral" className="shrink-0 gap-1 px-2 py-0.5">
+                            <KeyRound className="h-3 w-3" strokeWidth={1.75} aria-hidden />
+                            Account
+                          </Badge>
+                        </span>
+                      )}
+                    </p>
                     <p className="truncate text-sm text-stone-500">{status}</p>
                   </div>
                   {status === "Everything good" && (
