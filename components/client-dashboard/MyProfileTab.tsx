@@ -1,16 +1,20 @@
 // Deliberately no chart here — this audience is "completely non-technical,"
-// and a bar chart is exactly the kind of thing that isn't. Two big plain
-// numbers say more, faster, than a graph would.
+// and a bar chart is exactly the kind of thing that isn't. Plain numbers say
+// more, faster, than a graph would.
 export default function MyProfileTab({
   name,
   coachName,
   streak,
   totalCheckins,
+  level,
+  xp,
 }: {
   name: string;
   coachName: string;
   streak: number;
   totalCheckins: number;
+  level: number;
+  xp: number;
 }) {
   return (
     <div className="animate-fade-in space-y-5">
@@ -34,6 +38,14 @@ export default function MyProfileTab({
         <div className="rounded-3xl border border-stone-100 bg-white p-6 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <p className="text-4xl font-bold text-stone-900">{totalCheckins}</p>
           <p className="mt-1 text-sm font-medium text-stone-500">Total Check-Ins</p>
+        </div>
+        <div className="rounded-3xl border border-stone-100 bg-white p-6 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <p className="text-4xl font-bold text-stone-900">{level}</p>
+          <p className="mt-1 text-sm font-medium text-stone-500">Level</p>
+        </div>
+        <div className="rounded-3xl border border-stone-100 bg-white p-6 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <p className="text-4xl font-bold text-stone-900">{xp}</p>
+          <p className="mt-1 text-sm font-medium text-stone-500">Total XP</p>
         </div>
       </div>
     </div>

@@ -10,23 +10,6 @@ const DISCIPLINE_ICON: Record<Discipline["id"], LucideIcon> = {
   yoga: Flower2,
 };
 
-// Real, verified Unsplash photos (via WebSearch + WebFetch of the actual
-// photo page — never guessed) under the free Unsplash License.
-const DISCIPLINE_IMAGES: Record<Discipline["id"], { src: string; alt: string }> = {
-  fitness: {
-    src: "https://images.unsplash.com/photo-1590487988256-9ed24133863e?q=80&w=800&auto=format&fit=crop",
-    alt: "Grayscale gym equipment in moody light",
-  },
-  pilates: {
-    src: "https://images.unsplash.com/photo-1754257319747-df51c384c0fa?q=80&w=800&auto=format&fit=crop",
-    alt: "Pilates reformer workout in a bright studio",
-  },
-  yoga: {
-    src: "https://images.unsplash.com/photo-1687783615494-b4a1f1af8b58?q=80&w=800&auto=format&fit=crop",
-    alt: "Bright minimalist yoga studio with mats",
-  },
-};
-
 // Muted, "trendy cafe" tag tones rather than saturated status colors — pale
 // gold for energy-dense, sage for nutrient-dense, warm gray for dietary tags.
 const TAG_STYLES = {
@@ -59,7 +42,7 @@ export default function ActivityNutritionTeaser() {
         <RevealOnScroll delayMs={120} className="mt-12 grid gap-4 sm:grid-cols-3">
           {DISCIPLINES.map((d) => {
             const Icon = DISCIPLINE_ICON[d.id];
-            const img = DISCIPLINE_IMAGES[d.id];
+            const img = d.image;
             return (
               <div
                 key={d.id}

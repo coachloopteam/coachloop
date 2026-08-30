@@ -44,3 +44,11 @@ export const MOCK_TASKS: Task[] = [
 
 export const MOCK_STREAK_DAYS = 3;
 export const MOCK_TOTAL_CHECKINS = 47;
+
+// Illustrative gamification numbers — there's no XP/level model in the
+// schema. XP_PER_LEVEL is a flat threshold for the demo only.
+export const MOCK_XP = 340;
+export const XP_PER_LEVEL = 500;
+export const TASK_XP_REWARD = 20;
+export const WORKOUT_START_XP_REWARD = 20;
+export const CHALLENGE_XP_REWARD = 35;

@@ -10,22 +10,6 @@ const DISCIPLINE_ICON: Record<Discipline["id"], LucideIcon> = {
   yoga: Flower2,
 };
 
-// Same real, verified Unsplash photos used in ActivityNutritionTeaser.
-const DISCIPLINE_IMAGES: Record<Discipline["id"], { src: string; alt: string }> = {
-  fitness: {
-    src: "https://images.unsplash.com/photo-1590487988256-9ed24133863e?q=80&w=200&auto=format&fit=crop",
-    alt: "Grayscale gym equipment in moody light",
-  },
-  pilates: {
-    src: "https://images.unsplash.com/photo-1754257319747-df51c384c0fa?q=80&w=200&auto=format&fit=crop",
-    alt: "Pilates reformer workout in a bright studio",
-  },
-  yoga: {
-    src: "https://images.unsplash.com/photo-1687783615494-b4a1f1af8b58?q=80&w=200&auto=format&fit=crop",
-    alt: "Bright minimalist yoga studio with mats",
-  },
-};
-
 function PhoneFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="mx-auto w-[212px] rounded-[2rem] border-[6px] border-stone-900 bg-white p-1.5 shadow-[0_30px_60px_-24px_rgba(0,0,0,0.35)]">
@@ -132,7 +116,7 @@ export default function ClientExperienceShowcase() {
                 <div className="flex h-full flex-col justify-center gap-2.5 p-3">
                   {DISCIPLINES.map((d) => {
                     const Icon = DISCIPLINE_ICON[d.id];
-                    const img = DISCIPLINE_IMAGES[d.id];
+                    const img = d.image;
                     return (
                       <div
                         key={d.id}

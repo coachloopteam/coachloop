@@ -6,10 +6,23 @@ import { cn } from "@/lib/cn";
 import MobileHeader from "./MobileHeader";
 import BottomTabBar, { type Tab } from "./BottomTabBar";
 import DayStream from "./DayStream";
+import ForYouCarousel from "./ForYouCarousel";
+import SmartMatchSearch from "./SmartMatchSearch";
+import DailyChallenge from "./DailyChallenge";
 import MyProfileTab from "./MyProfileTab";
 import ChatTab from "./ChatTab";
 import ConfettiBurst from "./ConfettiBurst";
-import { MOCK_TASKS, MOCK_STREAK_DAYS, MOCK_TOTAL_CHECKINS, type Task, type TaskStatus } from "./mock-data";
+import {
+  MOCK_TASKS,
+  MOCK_STREAK_DAYS,
+  MOCK_TOTAL_CHECKINS,
+  MOCK_XP,
+  XP_PER_LEVEL,
+  TASK_XP_REWARD,
+  WORKOUT_START_XP_REWARD,
+  type Task,
+  type TaskStatus,
+} from "./mock-data";
 
 const CLIENT_NAME = "Jamie";
 const COACH_NAME = "Alex Rivera";
@@ -22,15 +35,22 @@ export default function ClientDashboardDemo() {
   const [tab, setTab] = useState<Tab>("home");
   const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
   const [streak, setStreak] = useState(MOCK_STREAK_DAYS);
+  const [xp, setXp] = useState(MOCK_XP);
   const [celebrated, setCelebrated] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [burstKey, setBurstKey] = useState(0);
   const [justCompletedId, setJustCompletedId] = useState<string | null>(null);
 
+  const level = Math.floor(xp / XP_PER_LEVEL) + 1;
+
   function celebrate(message: string) {
     setToast(message);
     setBurstKey((k) => k + 1);
     window.setTimeout(() => setToast(null), 3200);
+  }
+
+  function earnXp(amount: number) {
+    setXp((x) => x + amount);
   }
 
   function toggleTask(id: string) {
@@ -43,6 +63,7 @@ export default function ClientDashboardDemo() {
 
     if (target?.status !== "done") {
       setJustCompletedId(id);
+      earnXp(TASK_XP_REWARD);
       window.setTimeout(() => setJustCompletedId((cur) => (cur === id ? null : cur)), 900);
     }
 
@@ -56,17 +77,31 @@ export default function ClientDashboardDemo() {
     }
   }
 
+  function handleStartWorkout() {
+    earnXp(WORKOUT_START_XP_REWARD);
+    celebrate(`+${WORKOUT_START_XP_REWARD} XP — session started!`);
+  }
+
+  function handleCompleteChallenge(reward: number) {
+    earnXp(reward);
+    celebrate(`+${reward} XP — challenge completed!`);
+  }
+
   const tasksLeft = tasks.filter((t) => t.status !== "done").length;
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col bg-background sm:border-x sm:border-stone-100">
-      <MobileHeader name={CLIENT_NAME} tasksLeft={tasksLeft} />
+      <MobileHeader name={CLIENT_NAME} tasksLeft={tasksLeft} streak={streak} xp={xp} xpGoal={XP_PER_LEVEL} level={level} />
 
       <main className="relative flex-1 px-4 pb-28 pt-5">
         {tab === "home" && (
-          <div className="animate-fade-in space-y-5">
+          <div className="animate-fade-in space-y-7">
             <h1 className="text-2xl font-bold tracking-tight text-stone-900">Your Day, At a Glance</h1>
             {burstKey > 0 && <ConfettiBurst key={burstKey} />}
+
+            <DailyChallenge onComplete={handleCompleteChallenge} />
+            <ForYouCarousel onStartWorkout={handleStartWorkout} />
+            <SmartMatchSearch />
             <DayStream tasks={tasks} justCompletedId={justCompletedId} onToggle={toggleTask} />
           </div>
         )}
@@ -74,7 +109,14 @@ export default function ClientDashboardDemo() {
         {tab === "chat" && <ChatTab coachName={COACH_NAME} />}
 
         {tab === "profile" && (
-          <MyProfileTab name={CLIENT_NAME} coachName={COACH_NAME} streak={streak} totalCheckins={MOCK_TOTAL_CHECKINS} />
+          <MyProfileTab
+            name={CLIENT_NAME}
+            coachName={COACH_NAME}
+            streak={streak}
+            totalCheckins={MOCK_TOTAL_CHECKINS}
+            level={level}
+            xp={xp}
+          />
         )}
       </main>
 
