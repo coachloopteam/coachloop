@@ -4,6 +4,7 @@ import { Dumbbell, Flame, KeyRound, Sparkles, UtensilsCrossed } from "lucide-rea
 import { createAdminClient } from "@/lib/supabase/admin";
 import LogButtons from "@/components/LogButtons";
 import TodaysWorkouts from "@/components/TodaysWorkouts";
+import TodaysRecipes from "@/components/TodaysRecipes";
 
 type LogEntry = {
   id: string;
@@ -65,25 +66,32 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
   });
   const groups = groupByDay(entries);
 
-  // Catalog workouts visible to this client: the shared/global library
+  // Catalog content visible to this client: the shared/global library
   // (coach_id null) plus anything their own coach has added. See
-  // supabase/schema_v2_proposed.sql — daily_logs/workouts/client_gamification.
-  const workoutFilter = client.coach_id ? `coach_id.is.null,coach_id.eq.${client.coach_id}` : "coach_id.is.null";
+  // supabase/schema_v2_proposed.sql — daily_logs/workouts/recipes/client_gamification.
+  const catalogFilter = client.coach_id ? `coach_id.is.null,coach_id.eq.${client.coach_id}` : "coach_id.is.null";
   const { data: workouts } = await supabase
     .from("workouts")
     .select("id, title, discipline_type, detail, duration_minutes")
-    .or(workoutFilter)
+    .or(catalogFilter)
+    .order("created_at", { ascending: true })
+    .limit(6);
+
+  const { data: recipes } = await supabase
+    .from("recipes")
+    .select("id, title, description, calories, high_calorie, nutrient_dense, gluten_free, lactose_free")
+    .or(catalogFilter)
     .order("created_at", { ascending: true })
     .limit(6);
 
   const today = new Date().toISOString().slice(0, 10);
   const { data: todayLogs } = await supabase
     .from("daily_logs")
-    .select("workout_id")
+    .select("workout_id, recipe_id")
     .eq("client_id", client.id)
-    .eq("log_date", today)
-    .not("workout_id", "is", null);
-  const completedWorkoutIds = (todayLogs ?? []).map((l) => l.workout_id as string);
+    .eq("log_date", today);
+  const completedWorkoutIds = (todayLogs ?? []).flatMap((l) => (l.workout_id ? [l.workout_id as string] : []));
+  const loggedRecipeIds = (todayLogs ?? []).flatMap((l) => (l.recipe_id ? [l.recipe_id as string] : []));
 
   const { data: gamification } = await supabase
     .from("client_gamification")
@@ -122,6 +130,10 @@ export default async function ClientPortal({ params }: { params: Promise<{ token
 
         {workouts && workouts.length > 0 && (
           <TodaysWorkouts token={token} workouts={workouts} completedWorkoutIds={completedWorkoutIds} />
+        )}
+
+        {recipes && recipes.length > 0 && (
+          <TodaysRecipes token={token} recipes={recipes} loggedRecipeIds={loggedRecipeIds} />
         )}
 
         <div className="space-y-6">
