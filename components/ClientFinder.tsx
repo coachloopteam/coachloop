@@ -10,23 +10,25 @@ export type ClientRow = {
   name: string;
   hasAccount: boolean;
   status: string;
-  statusKind: "invited" | "stale" | "good" | "recent" | "none";
+  statusKind: "lead" | "stale" | "good" | "recent" | "none";
 };
 
-type FilterKey = "all" | "active" | "attention" | "invited";
+type FilterKey = "all" | "active" | "attention" | "lead";
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "all", label: "All" },
   { key: "active", label: "Active" },
   { key: "attention", label: "Needs Attention" },
-  { key: "invited", label: "Invited" },
+  { key: "lead", label: "Leads" },
 ];
 
 // Search + status filter over the coach's OWN existing clients — not a
 // lead-generation marketplace. This product pairs each client with exactly
 // one coach; there's no pool of prospective clients to browse (see
-// AGENTS.md / product model). "Discover" here means finding someone
-// already on this coach's roster, faster.
+// AGENTS.md / product model). "Leads" here means real
+// coach_client_assignments rows with status='lead' (an invited client who
+// hasn't started yet) — see app/coach/page.tsx — not prospects sourced
+// from anywhere external.
 export default function ClientFinder({ clients }: { clients: ClientRow[] }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -36,8 +38,8 @@ export default function ClientFinder({ clients }: { clients: ClientRow[] }) {
     return clients.filter((c) => {
       if (q && !c.name.toLowerCase().includes(q)) return false;
       if (filter === "active" && !(c.statusKind === "good" || c.statusKind === "recent")) return false;
-      if (filter === "attention" && !(c.statusKind === "invited" || c.statusKind === "stale")) return false;
-      if (filter === "invited" && c.statusKind !== "invited") return false;
+      if (filter === "attention" && !(c.statusKind === "lead" || c.statusKind === "stale")) return false;
+      if (filter === "lead" && c.statusKind !== "lead") return false;
       return true;
     });
   }, [clients, query, filter]);

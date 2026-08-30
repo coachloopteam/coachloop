@@ -39,5 +39,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Could not create client" }, { status: 500 });
   }
 
+  // Tracks this as a real lead in the CRM history (see
+  // supabase/schema_v2_proposed.sql) — every invite starts life as a lead
+  // until the client actually logs something and their status flips to
+  // 'active'. Best-effort: a failure here shouldn't block the invite itself,
+  // since the client row (the thing that actually matters) is already saved.
+  await supabase
+    .from("coach_client_assignments")
+    .insert({ coach_id: coach.id, client_id: client.id, status: "lead", origin: "direct_invite" });
+
   return NextResponse.json({ client, portalPath: `/c/${invite_token}` });
 }

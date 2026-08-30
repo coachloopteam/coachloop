@@ -93,10 +93,22 @@ export default async function CoachDashboard() {
         ? Math.round(Number(coachGamification.client_retention_rate))
         : Math.round((retainedClients.length / activatedClients.length) * 100);
 
+  // Real leads — coach_client_assignments rows this coach owns with
+  // status='lead' (an invited client who hasn't started yet). Backfilled
+  // once for existing clients; app/api/coach/invite/route.ts creates one
+  // for every new invite going forward, so this stays in sync without any
+  // new UI. See supabase/schema_v2_proposed.sql.
+  const { data: leadAssignments } = await supabase
+    .from("coach_client_assignments")
+    .select("client_id")
+    .eq("coach_id", coach?.id)
+    .eq("status", "lead");
+  const leadClientIds = new Set((leadAssignments ?? []).map((a) => a.client_id as string));
+
   const clientFinderRows: ClientRow[] = clientRows.map((c) => {
     const hoursSinceLog = c.lastLog ? (now - new Date(c.lastLog.logged_at).getTime()) / (1000 * 60 * 60) : null;
-    if (c.status === "invited") {
-      return { id: c.id, name: c.name, hasAccount: Boolean(c.auth_user_id), status: "Hasn't started yet", statusKind: "invited" };
+    if (leadClientIds.has(c.id)) {
+      return { id: c.id, name: c.name, hasAccount: Boolean(c.auth_user_id), status: "Hasn't started yet", statusKind: "lead" };
     }
     if (c.stale) {
       return { id: c.id, name: c.name, hasAccount: Boolean(c.auth_user_id), status: "Stale activity", statusKind: "stale" };
